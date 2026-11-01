@@ -1,0 +1,17 @@
+{
+  "flasher_repo": "https://github.com/meshcore-dev/flasher.meshcore.io",
+  "flasher_commit": "45a5257bf792b11a83f4c51c18d4f312addfb677",
+  "firmware_repo": "beala/MeshCore",
+  "release_tag_prefix": "beala-",
+  "keep_releases": 5,
+  "title": "beala's MeshCore flasher",
+  "devices": [
+    "Heltec Mesh Node T1",
+    "Seeed Studio SenseCAP MeshTracker X1",
+    "RAK WisMesh Tag",
+    "Seeed Studio SenseCAP T1000-E",
+    "Heltec v3",
+    "Heltec v4",
+    "RAK WisMesh 1W Booster (3401 + 13302)"
+  ]
+}
