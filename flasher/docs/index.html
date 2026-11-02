@@ -40,6 +40,7 @@
     <a href="https://github.com/beala/MeshCore/releases">All releases</a>
     <a href="https://github.com/beala/MeshCore">Source</a>
     <a href="#differences">What's different</a>
+    <a href="#alerts">Buzzer &amp; LED</a>
     <a href="#commands">New commands</a>
   </div>
 
@@ -86,8 +87,15 @@
     version are dropped instead of being handled as version 1.
     <span class="branch">beala/pr-3521</span></p>
 
+  <h3>Companion boards</h3>
+  <p><strong>Buzzer, vibration and LED switches.</strong> Commands to turn the buzzer, the vibration motor and the LEDs
+    on and off, each on its own (see <a href="#alerts">below</a>). Mainline only has a buzzer command, and the X1's
+    button cycles buzzer and vibration together.
+    <span class="branch">beala/alert-toggles</span></p>
+
   <h3>Heltec T1 and T1000-E</h3>
-  <p><strong>Buzzer off.</strong> The companion buzzer is disabled on both. <strong>Status LED off</strong> on the T1000-E.
+  <p><strong>Buzzer starts off</strong> on both, and the <strong>status LED starts off</strong> on the T1000-E.
+    Turn them back on with <code>set buzzer on</code> / <code>set led on</code>.
     <span class="branch">beala/custom</span></p>
 
   <h3>MeshTracker X1 (LR2021 radio)</h3>
@@ -109,6 +117,20 @@
     <li><strong>Radio diagnostics.</strong> The two commands below, plus transmit fault logging in debug builds.
       <span class="branch">beala/lr2021-tx-fault-log, beala/lr2021-rx-gain-step, beala/lr2021-diagnostics</span></li>
   </ul>
+
+  <h2 id="alerts">Buzzer, vibration and LED commands</h2>
+  <p>Send these from the companion app's command line. Each takes effect immediately and is saved. A board without
+    that part replies <code>Unknown command</code>.</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it controls</th><th>Boards</th></tr>
+    <tr><td><code>get buzzer</code><br><code>set buzzer on|off</code></td><td>The buzzer</td><td>T1, T1000-E, X1, WisMesh Tag</td></tr>
+    <tr><td><code>get vibe</code><br><code>set vibe on|off</code></td><td>The vibration motor, separately from the buzzer</td><td>X1</td></tr>
+    <tr><td><code>get led</code><br><code>set led on|off</code></td><td>The status LED (heartbeat, unread messages, charging) and the flash of the TX LED when it transmits</td><td>All companion boards on this site</td></tr>
+  </table>
+  </div>
+  <p>Replies: <code>&gt; on</code> or <code>&gt; off</code> for <code>get</code>, <code>OK</code> for <code>set</code>.
+    The X1's triple-press still cycles buzzer and vibration modes, and the commands show the result.</p>
 
   <h2 id="commands">New commands (MeshTracker X1)</h2>
   <p>Send these from the companion app's command line (or any client that can run companion CLI commands). Other radios reply <code>Unknown command</code>.</p>
