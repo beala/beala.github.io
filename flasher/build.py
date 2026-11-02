@@ -87,6 +87,15 @@ def main(flasher_dir, out_dir):
     # "Close". GitHub Pages has no file at those paths, so it serves 404.html: make that the flasher
     # too. It reads the path on load, and its scripts and styles use absolute URLs.
     (out / "404.html").write_text(page)
+    # The release list and catalog are fetched by script, and GitHub Pages lets browsers cache them for
+    # 10 minutes (a hard refresh doesn't cover script fetches). Revalidate every time instead: the
+    # browser keeps its copy and only re-downloads when the file changed.
+    util = out / "js" / "util.js"
+    code = util.read_text()
+    if "const res = await fetch(url);" in code:
+        util.write_text(code.replace("const res = await fetch(url);", "const res = await fetch(url, { cache: 'no-cache' });", 1))
+    else:
+        print("WARNING: flasher's fetchJson changed, release list may be cached for up to 10 minutes")
 
     # 2. Device catalog: only our devices, and only firmware that comes from GitHub releases
     config = json.loads((out / "config.json").read_text())
