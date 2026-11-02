@@ -5,6 +5,7 @@
   "release_tag_prefix": "beala-",
   "keep_releases": 5,
   "title": "beala's MeshCore flasher",
+  "site_host": "beala.github.io",
   "devices": [
     "Heltec Mesh Node T1",
     "Seeed Studio SenseCAP MeshTracker X1",
