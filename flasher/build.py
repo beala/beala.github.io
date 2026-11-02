@@ -8,10 +8,12 @@ list from a server endpoint, /releases. This script replaces that endpoint with 
   <out>/fw/<tag>/<file>   firmware files from those releases (same origin, so the browser can fetch them)
   <out>/firmware/<file>   erase images and bootloaders referenced by the device catalog
   <out>/config.json       the official device catalog, cut down to the devices in settings.json
+  <out>/docs/             docs page (flasher/docs), with the latest build filled in
 
 Usage: build.py <flasher checkout> <output dir>
 Set GITHUB_TOKEN to avoid API rate limits.
 """
+import html
 import json
 import os
 import re
@@ -34,6 +36,28 @@ def fetch(url, accept=None):
         return res.read()
 
 
+# A link to the docs page, pinned to a corner of the flasher
+DOCS_LINK = ('<a href="/docs/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:6px 12px;'
+             'border-radius:16px;background:#2563eb;color:#fff;font:14px system-ui,sans-serif;text-decoration:none;'
+             'box-shadow:0 1px 4px rgba(0,0,0,.25)">Docs &amp; what\'s different</a>')
+
+
+def latest_build_html(release):
+    """Summary of a release for the docs page: its name, and the branches it was built from."""
+    name = html.escape(release["name"] or release["tag_name"])
+    out = f'<p><a href="{html.escape(release["html_url"])}"><strong>{name}</strong></a>'
+    out += f' &middot; tag <code>{html.escape(release["tag_name"])}</code></p>'
+    branches = re.findall(r"^- \[([^\]]+)\]\((https?://[^)\s]+)\)", release["body"] or "", re.M)
+    if branches:
+        out += "<p>Built from upstream <code>dev</code> plus:</p><ul>"
+        out += "".join(f'<li><a href="{html.escape(u)}"><code>{html.escape(b)}</code></a></li>' for b, u in branches)
+        out += "</ul>"
+    diff = re.search(r"https://github\.com/\S+/compare/\S+", release["body"] or "")
+    if diff:
+        out += f'<p><a href="{html.escape(diff.group(0))}">Full diff against upstream</a></p>'
+    return out
+
+
 def release_source_key(firmware):
     return next((k for k in firmware if k.startswith("github")), None)
 
@@ -48,7 +72,9 @@ def main(flasher_dir, out_dir):
     shutil.copytree(flasher_dir, out, ignore=shutil.ignore_patterns(".git", ".github"))
     (out / ".nojekyll").touch()
     index = out / "index.html"
-    index.write_text(re.sub(r"<title>.*?</title>", f"<title>{settings['title']}</title>", index.read_text(), count=1))
+    page = re.sub(r"<title>.*?</title>", f"<title>{settings['title']}</title>", index.read_text(), count=1)
+    page = page.replace("</body>", DOCS_LINK + "</body>", 1)
+    index.write_text(page)
 
     # 2. Device catalog: only our devices, and only firmware that comes from GitHub releases
     config = json.loads((out / "config.json").read_text())
@@ -110,6 +136,12 @@ def main(flasher_dir, out_dir):
                             "notes": notes, "files": files})
 
     (out / "releases").write_text(json.dumps(catalog))
+
+    # 5. Docs page
+    docs = out / "docs"
+    shutil.copytree(HERE / "docs", docs)
+    page = (docs / "index.html").read_text()
+    (docs / "index.html").write_text(page.replace("<!--LATEST-->", latest_build_html(releases[0])))
 
 
 if __name__ == "__main__":

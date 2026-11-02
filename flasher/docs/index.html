@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>beala's MeshCore builds</title>
+<style>
+  :root { --bg:#fff; --fg:#1d1f23; --muted:#5d6470; --line:#e2e5ea; --card:#f6f7f9; --accent:#2563eb; --warn:#a15c00; --warnbg:#fff6e5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14161a; --fg:#e7e9ec; --muted:#9aa2ad; --line:#2b2f36; --card:#1c1f24; --accent:#6ea0ff; --warn:#f0b35a; --warnbg:#2a2111; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8rem; line-height:1.25; margin: 0 0 4px; }
+  h2 { font-size: 1.3rem; margin: 40px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 24px 0 4px; }
+  p, li { color: var(--fg); }
+  .lede { color: var(--muted); margin-top: 0; }
+  a { color: var(--accent); }
+  code { font: 0.9em ui-monospace,SFMono-Regular,Menlo,monospace; background: var(--card); border:1px solid var(--line); border-radius:4px; padding: 1px 5px; }
+  pre { background: var(--card); border:1px solid var(--line); border-radius:6px; padding: 12px; overflow-x:auto; }
+  pre code { border:0; padding:0; background:none; }
+  table { width:100%; border-collapse: collapse; font-size: 0.95rem; }
+  th, td { text-align:left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .table-wrap { overflow-x:auto; }
+  .note { background: var(--warnbg); border-left: 3px solid var(--warn); padding: 10px 14px; border-radius: 4px; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+  .nav { display:flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 0; font-size: 0.95rem; }
+  .branch { font: 0.85em ui-monospace,SFMono-Regular,Menlo,monospace; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>beala's MeshCore builds</h1>
+  <p class="lede">Firmware built from upstream MeshCore's <code>dev</code> branch plus a handful of fixes, for a short list of boards.</p>
+  <div class="nav">
+    <a href="/">Open the flasher</a>
+    <a href="https://github.com/beala/MeshCore/releases">All releases</a>
+    <a href="https://github.com/beala/MeshCore">Source</a>
+    <a href="#differences">What's different</a>
+    <a href="#commands">New commands</a>
+  </div>
+
+  <h2>Latest build</h2>
+  <div class="card"><!--LATEST--></div>
+
+  <h2>How it differs from the official flasher</h2>
+  <div class="table-wrap">
+  <table>
+    <tr><th></th><th>flasher.meshcore.io</th><th>This site</th></tr>
+    <tr><td>Firmware</td><td>Official stable releases</td><td>Upstream <code>dev</code> (unreleased) plus the changes listed below</td></tr>
+    <tr><td>Updates</td><td>When MeshCore cuts a release</td><td>Automatically, within about 45 minutes of a change upstream or here</td></tr>
+    <tr><td>Boards</td><td>Every supported board</td><td>The 7 boards listed below</td></tr>
+    <tr><td>Roles</td><td>Companion, repeater, room server</td><td>Companion (USB and BLE); repeater for the RAK 1W only</td></tr>
+    <tr><td>Version shown</td><td>e.g. <code>v1.18.0</code></td><td>e.g. <code>v1.18.0-dev-beala</code> (the last upstream release it's newer than)</td></tr>
+    <tr><td>Older versions</td><td>All past releases</td><td>The last 5 builds</td></tr>
+  </table>
+  </div>
+  <p>The flasher itself is the official one, unchanged. Erase images and bootloaders are copied from flasher.meshcore.io, so those are the same files.</p>
+  <p class="note">Because these builds track <code>dev</code>, they get upstream's newest work before it's released, including its bugs. If something breaks, flash an older build from the version list, or the official firmware from <a href="https://flasher.meshcore.io">flasher.meshcore.io</a>.</p>
+
+  <h2>Boards</h2>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Board</th><th>Radio</th><th>Firmware</th></tr>
+    <tr><td>Heltec Mesh Node T1</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
+    <tr><td>Seeed SenseCAP MeshTracker X1</td><td>LR2021</td><td>Companion USB / BLE</td></tr>
+    <tr><td>RAK WisMesh Tag</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
+    <tr><td>Seeed SenseCAP T1000-E</td><td>LR1110</td><td>Companion USB / BLE</td></tr>
+    <tr><td>Heltec V3</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
+    <tr><td>Heltec V4</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
+    <tr><td>RAK WisMesh 1W Booster (3401)</td><td>SX1262</td><td>Repeater</td></tr>
+  </table>
+  </div>
+
+  <h2 id="differences">What's different from mainline firmware</h2>
+
+  <h3>All boards</h3>
+  <p><strong>Packet parser security fixes.</strong> Neil Alexander's fixes from
+    <a href="https://github.com/meshcore-dev/MeshCore/pull/3521">meshcore-dev/MeshCore#3521</a>, not yet merged upstream.
+    Malformed or truncated packets from the air could make the firmware read past the end of buffers or use stale memory;
+    the parser now rejects them. Covers empty and short frames, partial encrypted payloads, oversized advert data,
+    bad TRACE and CONTROL packets, and ACK overflows. One addition on top: packets with a newer, unsupported protocol
+    version are dropped instead of being handled as version 1.
+    <span class="branch">beala/pr-3521</span></p>
+
+  <h3>Heltec T1 and T1000-E</h3>
+  <p><strong>Buzzer off.</strong> The companion buzzer is disabled on both. <strong>Status LED off</strong> on the T1000-E.
+    <span class="branch">beala/custom</span></p>
+
+  <h3>MeshTracker X1 (LR2021 radio)</h3>
+  <p>These change the LR2021 driver, so they only affect the X1 on this site.</p>
+  <ul>
+    <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
+      This uses Semtech's reference table, so settings up to 22 dBm give the power they say.
+      <span class="branch">beala/fix-lr2021-pa-table</span></li>
+    <li><strong>Semtech firmware patch.</strong> Semtech says to load a patch into the radio after every reset; RadioLib never does.
+      It's now loaded at boot. <span class="branch">beala/lr2021-pram-patch</span></li>
+    <li><strong>AGC reset fix.</strong> With <code>agc.reset.interval</code> turned on, the radio was left asleep after each reset:
+      packets were missed and queued messages didn't send. It now wakes and recalibrates properly.
+      <span class="branch">beala/fix-lr2021-agc-reset</span></li>
+    <li><strong>Correct boosted-gain status.</strong> The boot log always said RX boosted gain was off, even when it was on.
+      <span class="branch">beala/fix-lr2021-rx-boost-status</span></li>
+    <li><strong>SIMO power supply.</strong> The radio runs from its built-in DC-DC converter, which uses less current.
+      Not yet confirmed on hardware; if your X1 can't transmit or receive on this build, flash an older one and let me know.
+      <span class="branch">beala/lr2021-simo-flag, beala/x1-simo</span></li>
+    <li><strong>Radio diagnostics.</strong> The two commands below, plus transmit fault logging in debug builds.
+      <span class="branch">beala/lr2021-tx-fault-log, beala/lr2021-rx-gain-step, beala/lr2021-diagnostics</span></li>
+  </ul>
+
+  <h2 id="commands">New commands (MeshTracker X1)</h2>
+  <p>Send these from the companion app's command line (or any client that can run companion CLI commands). Other radios reply <code>Unknown command</code>.</p>
+
+  <h3><code>get radio.faults</code></h3>
+  <p>Transmits that went wrong since boot, newest first (up to 8), with how long ago each was.</p>
+  <pre><code>&gt; 3 since boot: 12s OCP; 95s ERR=0004; 300s NODONE</code></pre>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Flag</th><th>Meaning</th></tr>
+    <tr><td><code>NODONE</code></td><td>The transmit didn't finish</td></tr>
+    <tr><td><code>OCP</code></td><td>The power amplifier hit its over-current or over-voltage limit</td></tr>
+    <tr><td><code>ERR=xxxx</code></td><td>The chip reported an error (its error register in hex; <code>0004</code> is a PLL lock failure)</td></tr>
+    <tr><td><code>CMD</code></td><td>The chip rejected a command</td></tr>
+    <tr><td><code>TIMEOUT</code>, <code>EOL</code></td><td>The chip's timeout and end-of-life signals</td></tr>
+  </table>
+  </div>
+  <p>With no faults: <code>&gt; no TX faults since boot</code></p>
+
+  <h3><code>get radio.agc</code></h3>
+  <p>The receiver gain step the radio picked for each of the last packets, with their signal strength, SNR and age, newest first.</p>
+  <pre><code>&gt; G13 -112dBm -6.5dB 4s; G9 -87dBm 8.0dB 31s</code></pre>
+  <p>Higher gain steps mean the radio amplified a weaker signal. Useful for spotting a receiver that's being overloaded by a nearby transmitter (low gain steps on weak packets). Before anything is received: <code>&gt; no packets received yet</code></p>
+
+  <h2>How the builds are made</h2>
+  <p>Every 30 minutes a GitHub workflow in <a href="https://github.com/beala/MeshCore">beala/MeshCore</a> rebuilds the
+    <a href="https://github.com/beala/MeshCore/tree/beala/integration"><code>beala/integration</code></a> branch from scratch:
+    upstream <code>dev</code> with each branch above merged on top. If the result changed, it builds all boards in parallel
+    and publishes a <a href="https://github.com/beala/MeshCore/releases">release</a> tagged <code>beala-&lt;commit&gt;</code>.
+    This site checks for new releases every 15 minutes and republishes.</p>
+  <p>Each change lives on its own branch so it can also be sent upstream. When upstream merges one, it drops out of these builds by itself.
+    The release notes list exactly which branches went into each build, with a link to the full diff against upstream.</p>
+</main>
+</body>
+</html>
