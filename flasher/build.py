@@ -58,6 +58,13 @@ def latest_build_html(release):
     return out
 
 
+def release_label(release):
+    """'2026-11-02 14:05 UTC (fd14442)': date and time, so builds from the same day can be told apart."""
+    when = (release.get("published_at") or release["created_at"]).replace("T", " ")[:16]
+    sha = release["tag_name"].split("-", 1)[-1]
+    return f"{when} UTC ({sha})"
+
+
 def release_source_key(firmware):
     return next((k for k in firmware if k.startswith("github")), None)
 
@@ -112,6 +119,9 @@ def main(flasher_dir, out_dir):
     api = f"https://api.github.com/repos/{settings['firmware_repo']}/releases?per_page=100"
     releases = [r for r in json.loads(fetch(api, "application/vnd.github+json"))
                 if not r["draft"] and r["tag_name"].startswith(settings["release_tag_prefix"])]
+    # GitHub's order isn't reliably by date, and the flasher shows them in the order given
+    # (first one selected), so sort by when each was published, newest first.
+    releases.sort(key=lambda r: r.get("published_at") or r["created_at"], reverse=True)
     releases = releases[: settings["keep_releases"]]
     if not releases:
         sys.exit(f"No releases tagged {settings['release_tag_prefix']}* in {settings['firmware_repo']}")
@@ -132,7 +142,8 @@ def main(flasher_dir, out_dir):
         notes = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", r"\1: \2", r["body"] or "")
         # One release holds every role, so list it once per release type the catalog asks for
         for t in release_types:
-            catalog.append({"version": r["name"] or tag, "type": t, "name": r["name"] or tag,
+            label = release_label(r)
+            catalog.append({"version": label, "type": t, "name": label,
                             "notes": notes, "files": files})
 
     (out / "releases").write_text(json.dumps(catalog))
