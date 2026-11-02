@@ -93,8 +93,8 @@
     version are dropped instead of being handled as version 1.
     <span class="branch">beala/pr-3521</span></p>
 
-  <p><strong>Stronger randomness for new keys.</strong> When a radio creates its private key, every source of
-    randomness it has is now combined, instead of relying on one. Matters most on the Heltec V3 and V4
+  <p><strong>Safer randomness for new keys.</strong> A radio now only keeps a new private key if it gathered enough
+    randomness from sources it can trust, and the Heltec V3 and V4 use their chip's random generator properly
     (see <a href="#key-randomness">below</a>).
     <span class="branch">beala/entropy</span></p>
 
@@ -240,51 +240,65 @@
   <p>The first time a radio starts, it makes its own private key: a secret number that everything private hangs off.
     Every direct message to or from that radio is protected with it. The key is only as good as the randomness used to
     pick it. If that randomness were predictable, someone could work out the key and read those messages.</p>
-  <p><strong>What was wrong:</strong> on the Heltec V3 and V4 (ESP32 boards), the chip has a good built-in random number
-    generator, but because of a quirk in how the firmware starts up it was switched off. The key came only from
-    the LoRa radio's noise reading. There's no known problem with that reading, but nobody has checked its quality, so
-    the key rested on one unchecked source while a better one went unused.</p>
-  <p><strong>What changed:</strong> every source is now mixed together: the chip's random generator, many samples of
-    radio noise, and tiny timing differences. They're mixed in a way that means the key is as strong as the best source.
-    A weak or broken source can't make it worse.</p>
-  <p><strong>Which radios it affects:</strong></p>
+  <p><strong>What was wrong:</strong></p>
   <ul>
-    <li><strong>Heltec V3 and V4:</strong> real improvement.</li>
-    <li><strong>T1, X1, T1000-E, WisMesh Tag and the RAK3401 repeater</strong> (nRF52 boards): they already used their
-      chip's good hardware generator. This just adds extra sources on top.</li>
+    <li>On the Heltec V3 and V4 (ESP32), the chip's good random generator was switched off by a quirk in how the
+      firmware starts up. The key came only from the LoRa radio's noise reading, which nobody has checked.</li>
+    <li>On every board, nothing checked whether the sources were working. If they all failed, the radio would still
+      make a key and keep it forever.</li>
   </ul>
-  <p><strong>Your existing key doesn't change.</strong> It was made the first time the radio started, and updating the
-    firmware keeps it. To get a key made the new way, do a full erase when flashing (or otherwise reset the radio's
-    identity). That gives the radio a new identity, so your contacts will need to add it again.</p>
-  <p>The random 6-digit Bluetooth pairing PIN, shown on boards with a screen, now comes from the same mix.</p>
-  <p><strong>Channel keys aren't made on the radio.</strong> When you create a private channel, the phone app picks the
-    key and sends it to the radio, so this change doesn't affect them. Hashtag channels aren't private at all: their key
-    comes from the channel name.</p>
+  <p><strong>What changed:</strong></p>
+  <ul>
+    <li><strong>Only proven sources count.</strong> The chip's generator counts only when it reports success and is known
+      to be truly random at that moment. Radio noise counts only if it passes standard checks for a stuck or lopsided
+      signal, and then at a fraction of what it probably holds. Timing is mixed in but counts for nothing, because
+      start-up timing can repeat from boot to boot.</li>
+    <li><strong>No key is kept without enough.</strong> A key is saved only once 256 bits of trusted randomness have
+      been gathered. Otherwise the radio uses a temporary key for this session and tries again at the next boot. It
+      never keeps a key that might be weak.</li>
+    <li><strong>ESP32 turns its noise source on.</strong> Right at power-on, before anything else starts, the chip briefly
+      switches on the internal noise source its random generator needs.</li>
+    <li><strong>A standard generator.</strong> Keys come from HMAC-DRBG, the NIST-standard random generator, checked
+      against NIST's official test vectors.</li>
+  </ul>
+  <p><strong>Which radios it affects:</strong> it's a real fix on the Heltec V3 and V4. The T1, X1, T1000-E,
+    WisMesh Tag and RAK3401 already used their chip's hardware generator, and now also check that it worked.</p>
+  <p><strong>Your existing key doesn't change.</strong> Updating the firmware keeps it. To get a key made the new way,
+    do a full erase when flashing. That gives the radio a new identity, so your contacts will need to add it again.
+    Run <code>get entropy</code> afterwards to check there was enough randomness.</p>
+  <p>The random 6-digit Bluetooth PIN, shown on boards with a screen, comes from the same generator, and every PIN is
+    equally likely. <strong>Channel keys aren't made on the radio:</strong> the phone app picks them. Hashtag channels
+    aren't private at all.</p>
 
   <h3 id="key-randomness-technical">Technical details<a class="anchor" href="#key-randomness-technical" aria-label="Copy link to this section">#</a></h3>
   <ul>
-    <li><strong>Before:</strong> <code>RadioNoiseListener</code> set each key byte to the radio's <code>randomByte()</code>
-      XOR Arduino <code>random()</code> (and, on nRF52, the CC310 TRNG). On ESP32, <code>randomSeed()</code> at boot switches
-      <code>random()</code> from <code>esp_random()</code> to the newlib PRNG. That PRNG is seeded from 31 bits of the same
-      radio, so the SX1262 noise sampler was effectively the only source.</li>
-    <li><strong>After:</strong> a SHA-256 pool (<code>EntropyPool</code>). It absorbs 64 radio samples with a
-      <code>micros()</code> timestamp for each, plus 32 bytes from the MCU's hardware RNG (CC310 on nRF52,
-      <code>esp_fill_random()</code> on ESP32). Output is <code>SHA-256("O" ‖ state ‖ counter)</code>, and the state is
-      hashed forward after every draw.</li>
-    <li><strong>Stuck radio check:</strong> if 64 radio samples have fewer than 32 distinct values (for example, a driver
-      that returns 0 when a read fails, as the LR11x0 and LR2021 drivers do), up to 3 more rounds are taken.</li>
-    <li><strong>Cost:</strong> about 0.6 seconds extra on first boot with an SX1262 (it waits ~10 ms per sample), and up
-      to ~2.5 seconds if the radio looks stuck. After that, nothing changes.</li>
-    <li><strong>Limits:</strong>
+    <li><strong>Before:</strong> each key byte was the radio's <code>randomByte()</code> XOR Arduino
+      <code>random()</code>, plus the CC310 TRNG on nRF52. On ESP32, <code>randomSeed()</code> at boot switches
+      <code>random()</code> to the newlib PRNG, seeded from 31 bits of the same radio. Failures were ignored and a key was
+      always saved.</li>
+    <li><strong>Now:</strong> inputs are conditioned into a SHA-256 pool, which seeds an HMAC-DRBG (SP 800-90A, SHA-256,
+      tested against 20 NIST CAVP vectors). Keys are kept only when at least 256 bits have been credited:
       <ul>
-        <li>The ESP32's RNG is only truly random while Wi-Fi or Bluetooth is on. At first boot, before Bluetooth starts,
-          it's one source among several, not a guarantee.</li>
-        <li>RP2040 and STM32 boards have no hardware source wired in yet. For them, the gain is hashing and extra radio
-          samples.</li>
+        <li>CC310: 256 bits, only if <code>generate()</code> reports success.</li>
+        <li>ESP32 RNG: 256 bits, only in <code>collectEarly()</code>, the first call in every firmware's
+          <code>setup()</code>. It runs with the SAR ADC entropy source on (<code>bootloader_random_enable()</code>),
+          before the ADC or RF start, as ESP-IDF requires. At any other time the ESP32 RNG counts for nothing.</li>
+        <li>Radio noise: 1 bit per sample, for 512-sample batches that pass the SP 800-90B repetition count and adaptive
+          proportion tests. These catch a stuck or biased radio, not a predictable one.</li>
+        <li>Timings, seeds and anything else: 0.</li>
       </ul></li>
+    <li><strong>Fail closed:</strong> the companion, repeater, room server, sensor, KISS modem and terminal chat firmware
+      all save a new identity only if there was enough. The terminal chat example used to make keys from the Arduino
+      PRNG seeded at a keypress.</li>
+    <li><strong>Other details:</strong> the BLE PIN uses rejection sampling, temporaries are wiped with a
+      <code>volatile</code> write, and the pool is documented as single-threaded.</li>
+    <li><strong>Cost:</strong> about 0.6 s on first boot with trusted hardware. Without it (RP2040, STM32, ESP32-C6),
+      about 5 s per 512-sample batch on an SX126x, and up to 3 batches.</li>
+    <li><strong>Limits:</strong> no hardware has been measured yet. The ESP32 credit relies on ESP-IDF's statement about
+      the SAR ADC source. RP2040 and STM32 depend on radio noise alone.</li>
   </ul>
-  <p>Source: <a href="https://github.com/beala/MeshCore/tree/beala/entropy"><code>beala/entropy</code></a>
-    (<code>src/helpers/EntropyPool.cpp</code>).</p>
+  <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/entropy/docs/entropy.md">docs/entropy.md</a>.
+    Source: <a href="https://github.com/beala/MeshCore/tree/beala/entropy"><code>beala/entropy</code></a>.</p>
 
   <h2 id="commands">New commands (MeshTracker X1)<a class="anchor" href="#commands" aria-label="Copy link to this section">#</a></h2>
   <p>Send these from the companion app's command line (or any client that can run companion CLI commands). Other radios reply <code>Unknown command</code>.</p>
