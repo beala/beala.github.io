@@ -9,6 +9,7 @@ list from a server endpoint, /releases. This script replaces that endpoint with 
   <out>/firmware/<file>   erase images and bootloaders referenced by the device catalog
   <out>/config.json       the official device catalog, cut down to the devices in settings.json
   <out>/docs/             docs page (flasher/docs), with the latest build filled in
+  <out>/404.html          the flasher again, so its deep links (/device/role/version) load on GitHub Pages
 
 Usage: build.py <flasher checkout> <output dir>
 Set GITHUB_TOKEN to avoid API rate limits.
@@ -82,6 +83,10 @@ def main(flasher_dir, out_dir):
     page = re.sub(r"<title>.*?</title>", f"<title>{settings['title']}</title>", index.read_text(), count=1)
     page = page.replace("</body>", DOCS_LINK + "</body>", 1)
     index.write_text(page)
+    # The flasher keeps its state in the URL path (/device/role/version) and reloads the page, e.g. on
+    # "Close". GitHub Pages has no file at those paths, so it serves 404.html: make that the flasher
+    # too. It reads the path on load, and its scripts and styles use absolute URLs.
+    (out / "404.html").write_text(page)
 
     # 2. Device catalog: only our devices, and only firmware that comes from GitHub releases
     config = json.loads((out / "config.json").read_text())
