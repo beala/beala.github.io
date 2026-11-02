@@ -200,6 +200,7 @@
     <tr><td><code>set crypto.ch v2 1</code><br><code>get crypto.ch 1</code></td><td>The same for a channel, by number or name. Channels never switch by themselves</td></tr>
     <tr><td><code>get crypto</code></td><td>Channels not on legacy, and how many contacts are on v2</td></tr>
     <tr><td><code>set crypto.recover</code></td><td>Only needed if saved settings were lost (see below)</td></tr>
+    <tr><td><code>get crypto.bench</code></td><td>Times decryption on this radio with a test key, and says whether AES runs on hardware (<code>aes=hw</code>) or software</td></tr>
   </table>
   </div>
   <p>Keep repeaters and room servers on <code>legacy</code> unless they run this firmware: they can't read v2, so logins
@@ -221,6 +222,12 @@
     <li><strong>Payload safety:</strong> the receive buffer past the decrypted message is zeroed. PATH payloads whose path
       doesn't fit are rejected (an over-read that also affects mainline). Tests run under AddressSanitizer with random
       payloads of every type.</li>
+    <li><strong>Timing:</strong> on nRF52, AES runs on the CC310 hardware engine, which has no secret-dependent lookup
+      tables and is faster. It's checked against an RFC test vector on first use, with software AES as the fallback.
+      ESP32 already uses its AES hardware. The tag comparison is constant-time (checked in the ARM compiler output).
+      A packet built to trigger the padding retry costs two decryption attempts instead of one, which is CPU time only
+      and leaks nothing. An automatic upgrade is written to flash 5 seconds later, so it doesn't delay the first
+      v2 message's ACK.</li>
     <li><strong>Overhead:</strong> 16 bytes (+1 in 1 of 16 lengths) against v1's 2 + 0–15 bytes of padding: about 6.6 bytes
       more on average. Longest direct message 165 bytes (v1: 167).</li>
   </ul>
