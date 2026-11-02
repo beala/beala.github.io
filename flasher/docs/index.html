@@ -45,6 +45,7 @@
     <a href="https://github.com/beala/MeshCore">Source</a>
     <a href="#differences">What's different</a>
     <a href="#alerts">Buzzer &amp; LED</a>
+    <a href="#encryption">Encryption v2</a>
     <a href="#commands">New commands</a>
   </div>
 
@@ -97,6 +98,10 @@
     button cycles buzzer and vibration together.
     <span class="branch">beala/alert-toggles</span></p>
 
+  <p><strong>Stronger encryption (experimental, opt-in).</strong> A new encryption format that fixes real weaknesses in
+    the current one, and works alongside radios that don't have it (see <a href="#encryption">below</a>).
+    <span class="branch">beala/crypto-v2</span></p>
+
   <h3 id="stay-off-when-charging">T1, X1, WisMesh Tag and T1000-E<a class="anchor" href="#stay-off-when-charging" aria-label="Copy link to this section">#</a></h3>
   <p><strong>Stay off when plugged in.</strong> On mainline, plugging a switched-off node into a charger turns it on.
     These builds stay off and just charge; press the button to turn on. Change it with
@@ -142,6 +147,79 @@
   </div>
   <p>Replies: <code>&gt; on</code> or <code>&gt; off</code> for <code>get</code>, <code>OK</code> for <code>set</code>.
     The X1's triple-press still cycles buzzer and vibration modes, and the commands show the result.</p>
+
+  <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
+  <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
+    anything sensitive.</p>
+
+  <h3 id="encryption-plain">In plain terms<a class="anchor" href="#encryption-plain" aria-label="Copy link to this section">#</a></h3>
+  <p>A private message's encryption has two jobs: <strong>scramble</strong> it so listeners can't read it, and
+    <strong>seal</strong> it so the receiver knows it really came from you and wasn't changed or made up.</p>
+  <p><strong>Why MeshCore's current encryption is weak:</strong></p>
+  <ul>
+    <li><strong>It leaks patterns.</strong> Messages are scrambled in 16-character pieces, and the same piece always
+      scrambles the same way. A listener can't read your words, but can tell when you repeat them, like a code where each
+      common word always gets the same codeword.</li>
+    <li><strong>The seal is far too short.</strong> It's 2 bytes, so there are only 65,536 possible seals. Someone without
+      the key can keep sending fakes until about 1 in 65,536 is accepted, and because pieces are scrambled separately,
+      they can build the fake by cutting and pasting pieces of your earlier messages, so it reads as real text.</li>
+  </ul>
+  <p><strong>What v2 changes:</strong> it uses AES-SIV, a published standard
+    (<a href="https://www.rfc-editor.org/rfc/rfc5297">RFC 5297</a>), not a home-made scheme.</p>
+  <ul>
+    <li><strong>No patterns.</strong> The whole message is scrambled together, so repeated words no longer look alike.</li>
+    <li><strong>A seal that can't be guessed.</strong> 16 bytes instead of 2: guessing one is less likely than winning a
+      1-in-300-million lottery four times in a row.</li>
+    <li><strong>No cut and paste.</strong> The seal covers the whole message plus who it's from and to. Change any part and
+      the message is thrown away.</li>
+  </ul>
+  <p><strong>Working with radios that don't have it:</strong> repeaters relay v2 like any other message, and radios without
+    v2 quietly ignore it. Everything starts on the old format. You switch a contact or channel to v2 once the other side
+    has it. When a contact sends you v2, your radio starts replying in v2 by itself, but nothing ever switches back to the
+    old format automatically. <code>v2only</code> refuses the old format from that contact or channel entirely.</p>
+  <p><strong>Cost:</strong> about 7 more bytes per message on average. 160-character texts still fit.</p>
+  <p><strong>What it doesn't fix:</strong> channel members can still read everything and post under any name; public and
+    hashtag channels aren't private; someone who records messages and later steals your radio's key can read them;
+    recorded messages can be replayed; and who's talking, how often and how much is still visible.</p>
+
+  <h3 id="encryption-commands">Commands<a class="anchor" href="#encryption-commands" aria-label="Copy link to this section">#</a></h3>
+  <p>From the companion app's command line. They only work on the device itself, not from a remote admin.</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>set crypto v2 Alice</code></td><td>Send v2 to the contact Alice, still accept both formats (name, or the start of the public key in hex)</td></tr>
+    <tr><td><code>set crypto v2only Alice</code></td><td>Send v2 and refuse old-format messages from Alice</td></tr>
+    <tr><td><code>set crypto legacy Alice</code></td><td>Back to the old format (the default)</td></tr>
+    <tr><td><code>get crypto Alice</code></td><td>Show Alice's setting</td></tr>
+    <tr><td><code>set crypto.ch v2 1</code><br><code>get crypto.ch 1</code></td><td>The same for a channel, by number or name. Channels never switch by themselves</td></tr>
+    <tr><td><code>get crypto</code></td><td>Channels not on legacy, and how many contacts are on v2</td></tr>
+    <tr><td><code>set crypto.recover</code></td><td>Only needed if saved settings were lost (see below)</td></tr>
+  </table>
+  </div>
+  <p>Keep repeaters and room servers on <code>legacy</code> unless they run this firmware: they can't read v2, so logins
+    would fail.</p>
+
+  <h3 id="encryption-technical">Technical details<a class="anchor" href="#encryption-technical" aria-label="Copy link to this section">#</a></h3>
+  <ul>
+    <li><strong>Cipher:</strong> RFC 5297 AES-SIV with AES-128 and a 16-byte synthetic IV/tag. Key = HKDF-SHA256 of the
+      existing 32-byte shared or channel secret. Associated data: the label <code>"MeshCore AEAD v2"</code>, then the
+      payload type and the fixed addressing fields (destination/source hashes, sender key for anonymous requests, or the
+      channel hash). Fields repeaters change (path, hop count) aren't covered.</li>
+    <li><strong>Telling formats apart:</strong> an old-format payload is always 2 + 16·n bytes. v2 never uses that length
+      (one <code>0x00</code> byte is added when it would), so the receiver picks the format from the length alone, and
+      firmware from v1.18.0 on always rejects v2. The packet header is unchanged, so old repeaters keep forwarding.</li>
+    <li><strong>Downgrades:</strong> automatic changes only ever raise a contact to v2; channels never change on their own;
+      a missing ACK never falls back. Policies are saved to two alternating checksummed files, and prefs record the newest
+      save. If it can't be loaded at boot, everything is treated as <code>v2only</code> until
+      <code>set crypto.recover</code>, instead of silently accepting the old format again.</li>
+    <li><strong>Payload safety:</strong> the receive buffer past the decrypted message is zeroed. PATH payloads whose path
+      doesn't fit are rejected (an over-read that also affects mainline). Tests run under AddressSanitizer with random
+      payloads of every type.</li>
+    <li><strong>Overhead:</strong> 16 bytes (+1 in 1 of 16 lengths) against v1's 2 + 0–15 bytes of padding: about 6.6 bytes
+      more on average. Longest direct message 165 bytes (v1: 167).</li>
+  </ul>
+  <p>Full specification, test vectors and limitations:
+    <a href="https://github.com/beala/MeshCore/blob/beala/crypto-v2/docs/crypto_v2.md">docs/crypto_v2.md</a>.</p>
 
   <h2 id="commands">New commands (MeshTracker X1)<a class="anchor" href="#commands" aria-label="Copy link to this section">#</a></h2>
   <p>Send these from the companion app's command line (or any client that can run companion CLI commands). Other radios reply <code>Unknown command</code>.</p>
