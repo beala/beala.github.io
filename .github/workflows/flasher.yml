@@ -37,10 +37,11 @@ jobs:
         run: |
           REPO=$(jq -r .firmware_repo flasher/settings.json)
           PREFIX=$(jq -r .release_tag_prefix flasher/settings.json)
-          LATEST=$(curl -fsS -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases?per_page=30" \
+          # curl --retry only retries timeouts and HTTP 408, 429, 500, 502, 503, 504
+          LATEST=$(curl -fsS --retry 3 --retry-delay 10 --retry-max-time 120 -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases?per_page=30" \
             | jq -r --arg p "$PREFIX" '[.[] | select(.draft | not) | select(.tag_name | startswith($p))] | sort_by(.published_at) | last | .tag_name')
           # firmware URLs on the site look like /fw/<tag>/<file>
-          SERVED=$(curl -fsS "https://$(jq -r .site_host flasher/settings.json)/releases" | jq -r '.[0].files[0].url' | cut -d/ -f3 || true)
+          SERVED=$(curl -fsS --retry 3 --retry-delay 10 --retry-max-time 120 "https://$(jq -r .site_host flasher/settings.json)/releases" | jq -r '.[0].files[0].url' | cut -d/ -f3 || true)
           echo "latest release: $LATEST, site serves: ${SERVED:-nothing}"
           if [ "${{ github.event_name }}" = "schedule" ] && [ -n "$LATEST" ] && [ "$LATEST" = "$SERVED" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
@@ -72,7 +73,18 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     steps:
+      # Pages sometimes sits in "updating_pages" until the deploy times out. A failed deploy is
+      # cancelled, so a second, fresh deploy of the same build is safe. One retry only.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Wait before retrying the deploy
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 60
+
+      - id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4

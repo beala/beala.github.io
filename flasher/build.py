@@ -19,12 +19,21 @@ import json
 import os
 import re
 import shutil
+import socket
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).parent
 OFFICIAL_STATIC = "https://flasher.meshcore.io/firmware"
+
+
+# Errors worth another try: rate limiting and server-side failures. Anything else (404, 401, 403,
+# a bad URL) fails at once, since trying again won't change the answer.
+RETRY_STATUS = {429, 500, 502, 503, 504}
+RETRY_WAITS = [5, 15, 30]   # seconds before each retry, so at most 4 attempts
 
 
 def fetch(url, accept=None):
@@ -33,8 +42,24 @@ def fetch(url, accept=None):
         headers["Accept"] = accept
     if url.startswith("https://api.github.com/") and os.environ.get("GITHUB_TOKEN"):
         headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
-    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as res:
-        return res.read()
+    for attempt in range(len(RETRY_WAITS) + 1):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as res:
+                return res.read()
+        except urllib.error.HTTPError as e:
+            if e.code not in RETRY_STATUS or attempt == len(RETRY_WAITS):
+                raise
+            wait = RETRY_WAITS[attempt]
+            if e.code == 429 and (e.headers.get("Retry-After") or "").isdigit():
+                wait = min(int(e.headers["Retry-After"]), 60)
+            reason = f"HTTP {e.code}"
+        except (urllib.error.URLError, socket.timeout, ConnectionError) as e:
+            if attempt == len(RETRY_WAITS):
+                raise
+            wait = RETRY_WAITS[attempt]
+            reason = str(getattr(e, "reason", e))
+        print(f"fetch {url}: {reason}, retrying in {wait} s", file=sys.stderr)
+        time.sleep(wait)
 
 
 # A link to the docs page, pinned to a corner of the flasher
