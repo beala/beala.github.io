@@ -103,7 +103,7 @@
     Set yours with <code>sensor set ina219_shunt &lt;ohms&gt;</code> (for example <code>0.01</code> for a board marked R010).
     It's saved and survives a reboot. <code>sensor get ina219_shunt</code> shows it; it only appears in
     <code>sensor list</code> if an INA219 was found at boot. The most it can measure is 0.32&nbsp;V divided by the shunt:
-    3.2&nbsp;A with 0.1&nbsp;ohm, 32&nbsp;A with 0.01&nbsp;ohm. Not yet tested with a real sensor.
+    3.2&nbsp;A with 0.1&nbsp;ohm, 32&nbsp;A with 0.01&nbsp;ohm.
     <span class="branch">beala/ina219-shunt</span></p>
 
   <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
@@ -116,8 +116,8 @@
     the current one, and works alongside radios that don't have it (see <a href="#encryption">below</a>).
     <span class="branch">beala/crypto-v2</span></p>
 
-  <p><strong>Find a lost radio (experimental).</strong> Make a radio beep for a couple of minutes, from itself or from
-    another radio you've allowed, and measure the distance between two X1s (see <a href="#find-me">below</a>).
+  <p><strong>Find a lost radio.</strong> Make a radio beep for a couple of minutes, from itself or from
+    another radio you've allowed, and measure the distance between two LR2021 radios such as X1s (see <a href="#find-me">below</a>).
     <span class="branch">beala/find-me</span></p>
 
   <h3 id="stay-off-when-charging">T1, X1, WisMesh Tag and T1000-E<a class="anchor" href="#stay-off-when-charging" aria-label="Copy link to this section">#</a></h3>
@@ -145,7 +145,6 @@
     <li><strong>Correct boosted-gain status.</strong> The boot log always said RX boosted gain was off, even when it was on.
       <span class="branch">beala/fix-lr2021-rx-boost-status</span></li>
     <li><strong>SIMO power supply.</strong> The radio runs from its built-in DC-DC converter, which uses less current.
-      Not yet confirmed on hardware; if your X1 can't transmit or receive on this build, flash an older one and let me know.
       <span class="branch">beala/lr2021-simo-flag, beala/x1-simo</span></li>
     <li><strong>Radio diagnostics.</strong> The two commands below, plus transmit fault logging in debug builds.
       <span class="branch">beala/lr2021-tx-fault-log, beala/lr2021-rx-gain-step, beala/lr2021-diagnostics</span></li>
@@ -166,10 +165,9 @@
   <p>Replies: <code>&gt; on</code> or <code>&gt; off</code> for <code>get</code>, <code>OK</code> for <code>set</code>.
     The X1's triple-press still cycles buzzer and vibration modes, and the commands show the result.</p>
 
-  <h2 id="find-me">Find a lost radio (experimental)<a class="anchor" href="#find-me" aria-label="Copy link to this section">#</a></h2>
-  <p>Make a radio beep so you can find it by ear, from the radio itself or from another one. Between two X1s you can
-    also measure how far apart they are. None of this has been tested on real radios yet, so try it with both radios on
-    your desk before you need it.</p>
+  <h2 id="find-me">Find a lost radio<a class="anchor" href="#find-me" aria-label="Copy link to this section">#</a></h2>
+  <p>Make a radio beep so you can find it by ear, from the radio itself or from another one. Between two radios with
+    an LR2021 (such as two X1s) you can also measure how far apart they are.</p>
 
   <h3 id="find-me-how">How to use it<a class="anchor" href="#find-me-how" aria-label="Copy link to this section">#</a></h3>
   <ol>
@@ -182,7 +180,7 @@
     <li><strong>Lost for real:</strong> on the other radio, run <code>find beep &lt;name&gt;</code>, wait a few seconds,
       then <code>get find</code>. You should see <code>beeping for 120 s</code>. <code>find stop &lt;name&gt;</code>
       silences it.</li>
-    <li><strong>Both radios are X1s:</strong> run <code>find range &lt;name&gt;</code>, then <code>get find</code>, for
+    <li><strong>Both radios have an LR2021 (X1, AB Labs XIAO):</strong> run <code>find range &lt;name&gt;</code>, then <code>get find</code>, for
       something like <code>42 m (+/- 4 m, 30/32 answers, -97 dBm)</code>. Move and repeat: if the number goes down,
       you're getting closer.</li>
   </ol>
@@ -196,7 +194,8 @@
     <tr><td><code>find me stop</code></td><td>Stop beeping (the button does too)</td><td>T1, X1, WisMesh Tag, T1000-E</td></tr>
     <tr><td><code>set find.allow &lt;name&gt;</code><br><code>set find.deny &lt;name&gt;</code><br><code>get find.allow</code></td><td>Let a contact make this radio beep and range to it, take that away, or list who's allowed (up to 8). They can't do anything else</td><td>All companion boards</td></tr>
     <tr><td><code>find beep &lt;name&gt;</code><br><code>find stop &lt;name&gt;</code></td><td>Make another radio beep for 2 minutes, or stop it</td><td>All companion boards; the other radio needs a buzzer or vibration motor</td></tr>
-    <tr><td><code>find range &lt;name&gt;</code></td><td>Measure the distance to another radio</td><td>X1 to X1 only</td></tr>
+    <tr><td><code>find range &lt;name&gt;</code></td><td>Measure the distance to another radio</td><td>LR2021 to LR2021 (X1, AB Labs XIAO)</td></tr>
+    <tr><td><code>set find.extended on</code><br><code>set find.extended off</code><br><code>get find.extended</code></td><td>Use extended ranging for <code>find range</code> (off by default). The distance stays right while the radios move, and it adds a rough relative speed: <code>closing at ~20 m/s</code>, <code>moving apart at ~40 m/s</code>, or <code>not moving fast</code>. Speed comes in steps of about 20&nbsp;m/s, so it shows vehicles, not walking. Both radios need this build</td><td>LR2021 to LR2021</td></tr>
     <tr><td><code>get find</code></td><td>The latest answer, and how long ago it came</td><td>All companion boards</td></tr>
   </table>
   </div>
@@ -226,8 +225,12 @@
       isn't calibrated, so expect it to be a few metres off; walls and bodies make it read longer.</li>
     <li>While ranging, the lost radio is busy for 5&nbsp;s and the finder for up to 2.5&nbsp;s. Neither hears mesh
       traffic in that time.</li>
-    <li>Not checked yet: whether the X1's antenna switch follows the radio when it answers a ranging request on its own.
-      If ranging between two X1s never gets answers, that's the first suspect.</li>
+    <li><strong>Each ranging session uses a random address</strong>, sent only inside the encrypted reply, so other
+      radios can't easily answer in its place or range the lost radio while it listens. The ranging exchange itself
+      isn't encrypted, so a determined attacker could still fake the distance.</li>
+    <li><strong>Extended ranging</strong> runs two exchanges per measurement whose errors from relative motion are
+      opposite: their average gives the distance, their difference the speed. In normal mode, motion can throw the
+      distance off by tens of metres.</li>
   </ul>
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/find-me/docs/find_me.md">docs/find_me.md</a>.
     Source: <a href="https://github.com/beala/MeshCore/tree/beala/find-me"><code>beala/find-me</code></a>.</p>
