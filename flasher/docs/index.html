@@ -487,13 +487,13 @@
   <p>Higher gain steps mean the radio amplified a weaker signal. Useful for spotting a receiver that's being overloaded by a nearby transmitter (low gain steps on weak packets). Before anything is received: <code>&gt; no packets received yet</code></p>
 
   <h2 id="how-the-builds-are-made">How the builds are made<a class="anchor" href="#how-the-builds-are-made" aria-label="Copy link to this section">#</a></h2>
-  <p>Every 30 minutes a GitHub workflow in <a href="https://github.com/beala/MeshCore">beala/MeshCore</a> rebuilds the
-    <a href="https://github.com/beala/MeshCore/tree/beala/integration"><code>beala/integration</code></a> branch from scratch:
-    upstream <code>dev</code> with each branch above merged on top. If the result changed, it builds all boards in parallel
-    and publishes a <a href="https://github.com/beala/MeshCore/releases">release</a> tagged <code>beala-&lt;commit&gt;</code>.
-    This site checks for new releases every 15 minutes and republishes.</p>
-  <p>Each change lives on its own branch so it can also be sent upstream. When upstream merges one, it drops out of these builds by itself.
-    The release notes list exactly which branches went into each build, with a link to the full diff against upstream.</p>
+  <p>The builds come from <a href="https://github.com/beala/MeshCore/tree/beala/main"><code>beala/main</code></a>, the
+    fork's own main line. Every 30 minutes, and whenever <code>beala/main</code> changes, a GitHub workflow in
+    <a href="https://github.com/beala/MeshCore">beala/MeshCore</a> merges in the newest upstream <code>dev</code>, builds
+    all boards in parallel, and publishes a <a href="https://github.com/beala/MeshCore/releases">release</a> tagged
+    <code>beala-&lt;commit&gt;</code>. This site checks for new releases every 15 minutes and republishes.</p>
+  <p>The release notes list what changed since the previous release, with a link to the full diff against upstream.
+    The branch names next to each feature above are where that change is kept for sending upstream.</p>
 </main>
 <script>
   // clicking a heading's # copies the full link to that section

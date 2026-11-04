@@ -73,10 +73,17 @@ def latest_build_html(release):
     name = html.escape(release["name"] or release["tag_name"])
     out = f'<p><a href="{html.escape(release["html_url"])}"><strong>{name}</strong></a>'
     out += f' &middot; tag <code>{html.escape(release["tag_name"])}</code></p>'
-    branches = re.findall(r"^- \[([^\]]+)\]\((https?://[^)\s]+)\)", release["body"] or "", re.M)
-    if branches:
+    body = release["body"] or ""
+    branches = re.findall(r"^- \[([^\]]+)\]\((https?://[^)\s]+)\)", body, re.M)
+    since = re.search(r"^Changes since (\S+):", body, re.M)
+    if branches:   # older releases, built from upstream dev plus a list of branches
         out += "<p>Built from upstream <code>dev</code> plus:</p><ul>"
         out += "".join(f'<li><a href="{html.escape(u)}"><code>{html.escape(b)}</code></a></li>' for b, u in branches)
+        out += "</ul>"
+    elif since:    # releases from beala/main list what changed since the previous one
+        changes = re.findall(r"^- (.+)$", body[since.end():], re.M)
+        out += f"<p>Changes since <code>{html.escape(since.group(1))}</code>:</p><ul>"
+        out += "".join(f"<li>{html.escape(c)}</li>" for c in changes)
         out += "</ul>"
     diff = re.search(r"https://github\.com/\S+/compare/\S+", release["body"] or "")
     if diff:
