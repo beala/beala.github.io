@@ -208,6 +208,8 @@
     <li><code>find: not allowed</code>: step 1 wasn't done on the lost radio.</li>
     <li><code>old request ignored (is your clock set?)</code>: the radio you're using has the wrong time. Connect it to
       the app so its clock gets set.</li>
+    <li><code>ranging didn't start: this radio was busy transmitting</code>: run <code>find range</code> again.
+      (Builds before 4&nbsp;Nov said <code>radio busy</code> here even when the radio was free; update both radios.)</li>
     <li><code>ranging needs 902-928 MHz</code>: ranging uses a 500&nbsp;kHz wide signal, which only fits the US band
       (also Canada, Australia, New Zealand).</li>
   </ul>
@@ -222,7 +224,8 @@
       exchanges in 2.5&nbsp;s, reporting the median. Command sequence and bench results from
       <a href="https://github.com/beala/lr2021-re/blob/main/docs/ranging.md">beala/lr2021-re</a>. The distance offset
       isn't calibrated, so expect it to be a few metres off; walls and bodies make it read longer.</li>
-    <li>Each radio is busy for up to 3&nbsp;s while ranging and misses mesh traffic in that time.</li>
+    <li>While ranging, the lost radio is busy for 5&nbsp;s and the finder for up to 2.5&nbsp;s. Neither hears mesh
+      traffic in that time.</li>
     <li>Not checked yet: whether the X1's antenna switch follows the radio when it answers a ranging request on its own.
       If ranging between two X1s never gets answers, that's the first suspect.</li>
   </ul>
