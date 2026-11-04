@@ -115,10 +115,10 @@
     <span class="branch">beala/flood-retry</span></p>
 
   <p><strong>Several companions with one key.</strong> Pick one radio as the main radio; the others with the same
-    key still show every message but stay quiet when the main radio answers, so senders get one reply and one
-    path. A <em>Radio console</em> contact in the app runs radio commands and tells you when another radio with
+    key still show the messages they hear but never answer them, so senders get one reply and one path, and
+    "delivered" means the main radio has it. A <em>Radio console</em> contact in the app runs radio commands and tells you when another radio with
     your key is heard (see <a href="#clone-takeover">below</a>).
-    <span class="branch">beala/clone-takeover</span></p>
+    <span class="branch">beala/main</span></p>
 
   <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
   <p><strong>Buzzer, vibration and LED switches.</strong> Commands to turn the buzzer, the vibration motor and the LEDs
@@ -286,18 +286,19 @@
     each replies. The sender gets two replies and two paths, keeps the last, and sends its direct messages to that
     one radio from then on.</p>
   <p>With this firmware, one radio can take over as the main radio. The others become backups: they still show
-    every message, but when they would reply to one that came by flood, they wait 1.5&nbsp;seconds first. If they
-    hear the main radio's reply in that time, they drop their own. If the main radio is off or out of range, the
-    backup's reply goes out, and the sender gets its acknowledgement about a second later than usual.</p>
+    the messages they hear, but send no acknowledgement, path or response. Senders only ever hear from the main
+    radio, however far apart your radios are. If the main radio is off or out of range, nothing answers and the
+    sender sees the message fail, so take over on the radio you have with you. If you send a message from a
+    backup, its console offers to make it the main radio.</p>
 
   <h3 id="radio-console">The Radio console contact<a class="anchor" href="#radio-console" aria-label="Copy link to this section">#</a></h3>
   <p>Every radio with this firmware adds a contact called <strong>Radio console</strong> to the app. It isn't a
     real node, and messages to it never go on air: the radio runs them as commands and replies in the same chat.
-    Send <code>help</code> to start. Other radio commands work there too, such as <code>get flood.retry</code>, so
+    Send <code>help</code> to start. Commands aren't case sensitive. Other radio commands work there too, such as <code>get flood.retry</code>, so
     you can use them from an app that has no command line.</p>
   <p>The console also tells you things. When your radio hears another radio with your key, it posts: "Another
-    radio with this key is active: it sent to Bob. Send "takeover" to make this the main radio; the others will
-    stay quiet."</p>
+    radio with this key is active: it sent to Bob. Make this the main radio, so the others stay quiet? Reply
+    "yes"."</p>
 
   <h3 id="clone-takeover-commands">Commands<a class="anchor" href="#clone-takeover-commands" aria-label="Copy link to this section">#</a></h3>
   <p>Send these to the Radio console contact, or from the companion app's command line.</p>
@@ -305,17 +306,16 @@
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>takeover</code></td><td>Make this the main radio. It floods a short claim only radios with your key can read; each of them becomes a backup and says so in its console</td></tr>
-    <tr><td><code>clone</code></td><td>This radio's role, the wait, replies held and dropped, and when another radio with the key was last heard</td></tr>
+    <tr><td><code>yes</code></td><td>Accept the takeover the console just offered</td></tr>
+    <tr><td><code>clone</code></td><td>This radio's role, how often it stayed quiet as a backup, and when another radio with the key was last heard</td></tr>
     <tr><td><code>clone off</code></td><td>Answer as normal again</td></tr>
-    <tr><td><code>set clone.wait &lt;ms&gt;</code></td><td>How long a backup waits for the main radio, 300 to 5000&nbsp;ms (default 1500)</td></tr>
   </table>
   </div>
   <p>The role is saved and survives a reboot. A radio that was off during the takeover doesn't know about it; the
-    main radio posts a reminder when it hears that radio reply, and <code>takeover</code> again fixes it. Senders
-    keep one path for your key, so direct messages still go to one radio, usually the main one; backups get every
-    message that comes by flood. Messages you send from one radio don't show up on the others. More detail and
+    main radio offers to send the takeover again when it hears that radio reply. Senders keep one path for your
+    key, to the main radio; a backup elsewhere only gets messages that come by flood. Messages you send from one radio don't show up on the others. More detail and
     bench results are in
-    <a href="https://github.com/beala/MeshCore/blob/beala/clone-takeover/docs/clone_takeover.md">docs/clone_takeover.md</a>.</p>
+    <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/clone_takeover.md">docs/clone_takeover.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
