@@ -46,6 +46,7 @@
     <a href="#differences">What's different</a>
     <a href="#alerts">Buzzer &amp; LED</a>
     <a href="#find-me">Find me</a>
+    <a href="#flood-retry">Flood retry</a>
     <a href="#encryption">Encryption v2</a>
     <a href="#key-randomness">Key randomness</a>
     <a href="#commands">New commands</a>
@@ -105,6 +106,12 @@
     <code>sensor list</code> if an INA219 was found at boot. The most it can measure is 0.32&nbsp;V divided by the shunt:
     3.2&nbsp;A with 0.1&nbsp;ohm, 32&nbsp;A with 0.01&nbsp;ohm.
     <span class="branch">beala/ina219-shunt</span></p>
+
+  <p><strong>Resend channel messages that don't get out.</strong> After sending a channel message, the radio listens
+    for a repeater passing it on. If it hears none, it sends the exact same message once more. Radios that already
+    have it ignore the copy, so nobody sees it twice. On by default on companions, off by default on repeaters
+    (see <a href="#flood-retry">below</a>).
+    <span class="branch">beala/flood-retry</span></p>
 
   <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
   <p><strong>Buzzer, vibration and LED switches.</strong> Commands to turn the buzzer, the vibration motor and the LEDs
@@ -234,6 +241,32 @@
   </ul>
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/find-me/docs/find_me.md">docs/find_me.md</a>.
     Source: <a href="https://github.com/beala/MeshCore/tree/beala/find-me"><code>beala/find-me</code></a>.</p>
+
+  <h2 id="flood-retry">Flood retry<a class="anchor" href="#flood-retry" aria-label="Copy link to this section">#</a></h2>
+  <p>When you send a channel message, your radio listens for a repeater passing it on. If it hears nothing within
+    about 2.5 seconds, it sends the same message again, byte for byte, down to the timestamp.</p>
+  <p>That's safe because every radio and repeater remembers the messages it has seen and drops repeats of them. A
+    repeater that got the first copy ignores the resend, and so do the radios that showed you the message. A repeater
+    that missed the first copy treats the resend as new and passes it on. So the resend only fixes the case where
+    the first hop was lost, and costs one extra transmission when it wasn't needed.</p>
+  <p>On a repeater it works the same way for messages it forwards: if it doesn't hear anyone further out pass a
+    message on, it sends its copy again. That helps where one repeater is the only link between two areas. It's off
+    by default. Adverts are never resent, and a resend is skipped while the repeater has other packets waiting. A
+    repeater at the edge of the mesh, with nobody further out, would resend everything once, so leave it off there.</p>
+
+  <h3 id="flood-retry-commands">Commands<a class="anchor" href="#flood-retry-commands" aria-label="Copy link to this section">#</a></h3>
+  <p>From the companion app's command line, or a repeater's command line (USB or remote admin).</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>get flood.retry</code></td><td>How many resends, and the wait</td></tr>
+    <tr><td><code>set flood.retry 0</code> to <code>3</code><br><code>set flood.retry off</code></td><td>How many times to resend if nothing is heard. Companions start at 1, repeaters at 0 (off)</td></tr>
+    <tr><td><code>set flood.retry.wait &lt;ms&gt;</code><br><code>set flood.retry.wait auto</code></td><td>How long to wait for a repeat, 500 to 30000&nbsp;ms. <code>auto</code> (the default) is 1&nbsp;second plus 8 times the message's airtime, about 2.5&nbsp;s at SF7 / 62.5&nbsp;kHz</td></tr>
+    <tr><td><code>get flood.retry.stats</code></td><td>Counts since boot, for example <code>watched 18, echoed 15 (9 after a resend), resends 12, no echo 3, skipped 0</code>. "After a resend" means the first send didn't get through and the resend did</td></tr>
+  </table>
+  </div>
+  <p>Direct messages aren't covered: they already have acknowledgements and retries. More detail and bench results are in
+    <a href="https://github.com/beala/MeshCore/blob/beala/flood-retry/docs/flood_retry.md">docs/flood_retry.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
