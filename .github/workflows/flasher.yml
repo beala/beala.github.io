@@ -1,7 +1,9 @@
 name: Flasher
 
-# Publishes the MeshCore web flasher to GitHub Pages, serving firmware from the beala-* releases
-# of beala/MeshCore. Settings (devices, how many releases, flasher version) are in flasher/settings.json.
+# Publishes the FluxCore flasher (the MeshCore web flasher, restyled) to Cloudflare at flash.fluxcore.party,
+# serving firmware from the beala-* releases of beala/MeshCore. Settings (devices, how many releases,
+# flasher version) are in flasher/settings.json; the Cloudflare Worker is set up in flasher/wrangler.jsonc.
+# Needs repo secrets CLOUDFLARE_API_TOKEN (Workers edit permission) and CLOUDFLARE_ACCOUNT_ID.
 # Only the flasher is published: the other files in this repo are not part of the site.
 
 on:
@@ -14,18 +16,14 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    outputs:
-      skip: ${{ steps.check.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,29 +60,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 flasher/build.py _flasher _site
 
-      - uses: actions/upload-pages-artifact@v3
+      # Retry once: an upload that fails partway is safe to repeat (unchanged files are skipped)
+      - name: Deploy to Cloudflare
         if: steps.check.outputs.skip != 'true'
-        with:
-          path: _site
-
-  deploy:
-    needs: build
-    if: needs.build.outputs.skip != 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
-    steps:
-      # Pages sometimes sits in "updating_pages" until the deploy times out. A failed deploy is
-      # cancelled, so a second, fresh deploy of the same build is safe. One retry only.
-      - id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-
-      - name: Wait before retrying the deploy
-        if: steps.deployment.outcome == 'failure'
-        run: sleep 60
-
-      - id: deployment_retry
-        if: steps.deployment.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx -y wrangler@4 deploy -c flasher/wrangler.jsonc || { echo "deploy failed, retrying in 60 s"; sleep 60; npx -y wrangler@4 deploy -c flasher/wrangler.jsonc; }

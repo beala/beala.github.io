@@ -9,7 +9,6 @@ list from a server endpoint, /releases. This script replaces that endpoint with 
   <out>/firmware/<file>   erase images and bootloaders referenced by the device catalog
   <out>/config.json       the official device catalog, cut down to the devices in settings.json
   <out>/docs/             docs page (flasher/docs), with the latest build filled in
-  <out>/404.html          the flasher again, so its deep links (/device/role/version) load on GitHub Pages
 
 Usage: build.py <flasher checkout> <output dir>
 Set GITHUB_TOKEN to avoid API rate limits.
@@ -37,7 +36,7 @@ RETRY_WAITS = [5, 15, 30]   # seconds before each retry, so at most 4 attempts
 
 
 def fetch(url, accept=None):
-    headers = {"User-Agent": "beala-flasher-build"}
+    headers = {"User-Agent": "fluxcore-flasher-build"}
     if accept:
         headers["Accept"] = accept
     if url.startswith("https://api.github.com/") and os.environ.get("GITHUB_TOKEN"):
@@ -62,10 +61,28 @@ def fetch(url, accept=None):
         time.sleep(wait)
 
 
-# A link to the docs page, pinned to a corner of the flasher
-DOCS_LINK = ('<a href="/docs/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:6px 12px;'
-             'border-radius:16px;background:#2563eb;color:#fff;font:14px system-ui,sans-serif;text-decoration:none;'
-             'box-shadow:0 1px 4px rgba(0,0,0,.25)">Docs &amp; what\'s different</a>')
+# Links to the docs and the home page, pinned to a corner of the flasher
+CORNER_LINKS = ('<div class="fc-corner"><a href="https://fluxcore.party/">fluxcore.party</a>'
+                '<a class="fc-primary" href="/docs/">Docs &amp; what\'s different</a></div>')
+
+# FluxCore logo, in place of the MeshCore logo image in the flasher's header
+LOGO_OLD = '<img :src="`/img/${logoFile}`" v-if="!isIframe"> <span>flasher</span>'
+LOGO_NEW = ('<span class="fc-logo"><a href="https://fluxcore.party/">fluxcore<span class="fc-cursor"></span></a>'
+            '<span class="fc-sub">flasher</span></span>')
+
+
+def theme(page):
+    """Restyles the flasher page to match fluxcore.party (flasher/theme/fluxcore.css)."""
+    for old, new in [
+        ('<link href="/css/flasher.css" rel="stylesheet">',
+         '<link href="/css/flasher.css" rel="stylesheet">\n  <link href="/css/fluxcore.css" rel="stylesheet">'),
+        ('<body class="dark">', '<body class="light fluxcore">'),
+        (LOGO_OLD, LOGO_NEW),
+    ]:
+        if old not in page:
+            print(f"WARNING: flasher page changed, theme step skipped: {old}")
+        page = page.replace(old, new, 1)
+    return page.replace("</body>", CORNER_LINKS + "</body>", 1)
 
 
 def latest_build_html(release):
@@ -110,17 +127,15 @@ def main(flasher_dir, out_dir):
     if out.exists():
         shutil.rmtree(out)
     shutil.copytree(flasher_dir, out, ignore=shutil.ignore_patterns(".git", ".github"))
-    (out / ".nojekyll").touch()
     index = out / "index.html"
     page = re.sub(r"<title>.*?</title>", f"<title>{settings['title']}</title>", index.read_text(), count=1)
-    page = page.replace("</body>", DOCS_LINK + "</body>", 1)
+    page = theme(page)
     index.write_text(page)
-    # The flasher keeps its state in the URL path (/device/role/version) and reloads the page, e.g. on
-    # "Close". GitHub Pages has no file at those paths, so it serves 404.html: make that the flasher
-    # too. It reads the path on load, and its scripts and styles use absolute URLs.
-    (out / "404.html").write_text(page)
-    # The release list and catalog are fetched by script, and GitHub Pages lets browsers cache them for
-    # 10 minutes (a hard refresh doesn't cover script fetches). Revalidate every time instead: the
+    shutil.copy(HERE / "theme" / "fluxcore.css", out / "css" / "fluxcore.css")
+    # The flasher keeps its state in the URL path (/device/role/version). There are no files at those
+    # paths: Cloudflare serves index.html for them (not_found_handling in flasher/wrangler.jsonc).
+    # The release list and catalog are fetched by script, and a host may let browsers cache them for
+    # minutes (a hard refresh doesn't cover script fetches). Revalidate every time instead: the
     # browser keeps its copy and only re-downloads when the file changed.
     util = out / "js" / "util.js"
     code = util.read_text()

@@ -4,8 +4,8 @@
   "firmware_repo": "beala/MeshCore",
   "release_tag_prefix": "beala-",
   "keep_releases": 5,
-  "title": "beala's MeshCore flasher",
-  "site_host": "beala.github.io",
+  "title": "FluxCore flasher",
+  "site_host": "flash.fluxcore.party",
   "devices": [
     "Heltec Mesh Node T1",
     "Seeed Studio SenseCAP MeshTracker X1",

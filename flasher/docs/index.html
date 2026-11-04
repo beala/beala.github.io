@@ -3,44 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>beala's MeshCore builds</title>
+<title>FluxCore docs</title>
 <style>
-  :root { --bg:#fff; --fg:#1d1f23; --muted:#5d6470; --line:#e2e5ea; --card:#f6f7f9; --accent:#2563eb; --warn:#a15c00; --warnbg:#fff6e5; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#14161a; --fg:#e7e9ec; --muted:#9aa2ad; --line:#2b2f36; --card:#1c1f24; --accent:#6ea0ff; --warn:#f0b35a; --warnbg:#2a2111; }
-  }
+  /* Matches fluxcore.party */
+  :root { color-scheme: light; --bg:#f7f8f3; --fg:#182018; --muted:#626b5e; --line:#cbd1c5; --card:#eef1e7; --acid:#c0ff58; --green:#3d642b; --warn:#7a5a00; --warnbg:#f6f1d8; --mono:'Courier New',Courier,monospace; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 1.8rem; line-height:1.25; margin: 0 0 4px; }
-  h2 { font-size: 1.3rem; margin: 40px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
-  h3 { font-size: 1.05rem; margin: 24px 0 4px; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.65 Arial,Helvetica,sans-serif; }
+  ::selection { background:var(--acid); color:#17200f; }
+  .top { max-width:1140px; margin:0 auto; padding:28px 32px; display:flex; justify-content:space-between; gap:25px; font:13px var(--mono); }
+  .top a { text-decoration:none; }
+  .top .links { display:flex; gap:25px; }
+  main { width:min(100% - 48px, 760px); margin: 40px auto 0; padding-bottom: 64px; }
+  h1 { font:400 clamp(44px,8vw,68px)/1.05 var(--mono); letter-spacing:-5px; margin:0 0 18px; }
+  .cursor { display:inline-block; background:var(--acid); width:.19em; height:.76em; margin-left:.09em; vertical-align:-.03em; }
+  h2 { font:bold 17px/1.5 var(--mono); letter-spacing:-.4px; margin: 52px 0 14px; padding-top: 28px; border-top: 1px solid var(--line); }
+  h2::before { content:"/"; color:var(--green); margin-right:10px; }
+  h3 { font:bold 15px/1.5 var(--mono); margin: 28px 0 6px; }
   p, li { color: var(--fg); }
-  .lede { color: var(--muted); margin-top: 0; }
-  a { color: var(--accent); }
-  code { font: 0.9em ui-monospace,SFMono-Regular,Menlo,monospace; background: var(--card); border:1px solid var(--line); border-radius:4px; padding: 1px 5px; }
-  pre { background: var(--card); border:1px solid var(--line); border-radius:6px; padding: 12px; overflow-x:auto; }
-  pre code { border:0; padding:0; background:none; }
-  table { width:100%; border-collapse: collapse; font-size: 0.95rem; }
+  .lede { font-size:20px; line-height:1.5; margin-top: 0; }
+  a { color: inherit; text-decoration-thickness:1px; text-underline-offset:4px; }
+  a:hover { background:var(--acid); color:#17200f; }
+  a:focus-visible { outline:2px solid var(--green); outline-offset:4px; }
+  code { font: 0.88em var(--mono); background: var(--card); padding: 1px 5px; }
+  pre { background: var(--card); border-left: 3px solid var(--green); padding: 12px 14px; overflow-x:auto; }
+  pre code { padding:0; background:none; }
+  table { width:100%; border-collapse: collapse; font-size: 0.93rem; }
   th, td { text-align:left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; }
+  th { color: var(--muted); font: bold 13px var(--mono); }
   .table-wrap { overflow-x:auto; }
-  .note { background: var(--warnbg); border-left: 3px solid var(--warn); padding: 10px 14px; border-radius: 4px; }
-  .card { background: var(--card); border:1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
-  .nav { display:flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 0; font-size: 0.95rem; }
-  .branch { font: 0.85em ui-monospace,SFMono-Regular,Menlo,monospace; color: var(--muted); }
+  .note { background: var(--warnbg); border-left: 3px solid var(--warn); padding: 10px 14px; }
+  .card { background: var(--card); padding: 12px 16px; border-left: 3px solid var(--acid); }
+  .nav { display:flex; gap: 8px 22px; flex-wrap: wrap; margin: 26px 0 0; font: 14px var(--mono); }
+  .nav a.primary { background:var(--acid); padding:2px 6px; margin-left:-6px; }
+  .branch { font: 0.82em var(--mono); color: var(--muted); }
   .anchor { margin-left: 8px; color: var(--muted); text-decoration: none; font-weight: 400; opacity: .55; }
-  .anchor:hover, .anchor:focus { opacity: 1; color: var(--accent); }
-  .anchor.copied::after { content: " copied"; font-size: .75em; color: var(--accent); }
+  .anchor:hover, .anchor:focus { opacity: 1; }
+  .anchor.copied::after { content: " copied"; font-size: .75em; color: var(--green); }
   h2, h3 { scroll-margin-top: 16px; }
+  footer { border-top:1px solid var(--line); margin-top:52px; padding:19px 0 0; display:flex; justify-content:space-between; gap:16px; font:11px var(--mono); color:var(--muted); }
+  footer a { text-decoration:none; }
+  @media (max-width:600px) { .top { padding:23px 24px; } h1 { letter-spacing:-4px; } footer { flex-direction:column; gap:5px; } }
 </style>
 </head>
 <body>
+<nav class="top" aria-label="Main navigation"><a href="https://fluxcore.party/">fluxcore.party</a><span class="links"><a href="/">Flasher</a><a href="https://github.com/beala/MeshCore">Source ↗</a></span></nav>
 <main>
-  <h1>beala's MeshCore builds</h1>
+  <h1>fluxcore docs<span class="cursor" aria-hidden="true"></span></h1>
   <p class="lede">Firmware built from upstream MeshCore's <code>dev</code> branch plus a handful of fixes, for a short list of boards.</p>
   <div class="nav">
-    <a href="/">Open the flasher</a>
+    <a class="primary" href="/">Open the flasher</a>
     <a href="https://github.com/beala/MeshCore/releases">All releases</a>
     <a href="https://github.com/beala/MeshCore">Source</a>
     <a href="#differences">What's different</a>
@@ -494,6 +506,7 @@
     <code>beala-&lt;commit&gt;</code>. This site checks for new releases every 15 minutes and republishes.</p>
   <p>The release notes list what changed since the previous release, with a link to the full diff against upstream.
     The branch names next to each feature above are where that change is kept for sending upstream.</p>
+  <footer><span>fluxcore / independent MeshCore fork</span><a href="https://fluxcore.party/">fluxcore.party</a></footer>
 </main>
 <script>
   // clicking a heading's # copies the full link to that section
