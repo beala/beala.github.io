@@ -107,10 +107,10 @@
     3.2&nbsp;A with 0.1&nbsp;ohm, 32&nbsp;A with 0.01&nbsp;ohm.
     <span class="branch">beala/ina219-shunt</span></p>
 
-  <p><strong>Resend channel messages that don't get out.</strong> After sending a channel message, the radio listens
-    for a repeater passing it on. If it hears none, it sends the exact same message once more. Radios that already
-    have it ignore the copy, so nobody sees it twice. On by default on companions, off by default on repeaters
-    (see <a href="#flood-retry">below</a>).
+  <p><strong>Resend messages that don't get out.</strong> After sending a message, the radio listens for the next
+    repeater passing it on. If it hears none, it sends the exact same packet once more. Radios that already have it
+    ignore the copy, so nobody sees it twice. Works for channel messages and for direct messages along a path.
+    On by default on companions, off by default on repeaters (see <a href="#flood-retry">below</a>).
     <span class="branch">beala/flood-retry</span></p>
 
   <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
@@ -243,16 +243,20 @@
     Source: <a href="https://github.com/beala/MeshCore/tree/beala/find-me"><code>beala/find-me</code></a>.</p>
 
   <h2 id="flood-retry">Flood retry<a class="anchor" href="#flood-retry" aria-label="Copy link to this section">#</a></h2>
-  <p>When you send a channel message, your radio listens for a repeater passing it on. If it hears nothing within
-    about 2.5 seconds, it sends the same message again, byte for byte, down to the timestamp.</p>
+  <p>When you send a message, your radio listens for the next repeater passing it on. If it hears nothing within
+    about 2.5 seconds, it sends the same packet again, byte for byte, down to the timestamp. That covers channel
+    messages, messages to contacts it doesn't have a path to yet, and direct messages that follow a path through
+    repeaters. For a direct message, a lost hop is fixed in a few seconds instead of waiting for the app to time
+    out and retry.</p>
   <p>That's safe because every radio and repeater remembers the messages it has seen and drops repeats of them. A
     repeater that got the first copy ignores the resend, and so do the radios that showed you the message. A repeater
     that missed the first copy treats the resend as new and passes it on. So the resend only fixes the case where
     the first hop was lost, and costs one extra transmission when it wasn't needed.</p>
-  <p>On a repeater it works the same way for messages it forwards: if it doesn't hear anyone further out pass a
-    message on, it sends its copy again. That helps where one repeater is the only link between two areas. It's off
-    by default. Adverts are never resent, and a resend is skipped while the repeater has other packets waiting. A
-    repeater at the edge of the mesh, with nobody further out, would resend everything once, so leave it off there.</p>
+  <p>On a repeater it works the same way for messages it forwards: if it doesn't hear the next hop pass a message
+    on, it sends its copy again. That helps on every hop of a direct route, and where one repeater is the only link
+    between two areas. It's off by default. Adverts are never resent, and a resend is skipped while the repeater has
+    other packets waiting. A repeater at the edge of the mesh, with nobody further out, would resend every channel
+    message once, so leave it off there.</p>
 
   <h3 id="flood-retry-commands">Commands<a class="anchor" href="#flood-retry-commands" aria-label="Copy link to this section">#</a></h3>
   <p>From the companion app's command line, or a repeater's command line (USB or remote admin).</p>
@@ -265,7 +269,8 @@
     <tr><td><code>get flood.retry.stats</code></td><td>Counts since boot, for example <code>watched 18, echoed 15 (9 after a resend), resends 12, no echo 3, skipped 0</code>. "After a resend" means the first send didn't get through and the resend did</td></tr>
   </table>
   </div>
-  <p>Direct messages aren't covered: they already have acknowledgements and retries. More detail and bench results are in
+  <p>Adverts, traces, and the last hand-off to the recipient are never resent: nobody passes those on, so there's
+    no repeat to listen for. More detail and bench results are in
     <a href="https://github.com/beala/MeshCore/blob/beala/flood-retry/docs/flood_retry.md">docs/flood_retry.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
