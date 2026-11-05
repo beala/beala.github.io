@@ -71,6 +71,7 @@
     <a href="#chat-commands">Commands in a chat</a>
     <a href="#meshtastic">Meshtastic channel</a>
     <a href="#weather">Weather sensors</a>
+    <a href="#aircraft">Aircraft</a>
     <a href="#encryption">Encryption v2</a>
     <a href="#key-randomness">Key randomness</a>
     <a href="#commands">New commands</a>
@@ -106,6 +107,9 @@
     <li><strong>Weather sensors.</strong> With <code>wx on</code>, readings from Ecowitt, Ambient Weather, other Fine
       Offset and La Crosse View sensors show in the app as a "Weather" channel. The radio steps away from the mesh only around each
       sensor's next packet (see <a href="#weather">below</a>).
+      <span class="branch">beala/main</span></li>
+    <li><strong>Aircraft.</strong> With <code>air on</code>, light aircraft reporting on 978&nbsp;MHz (UAT) show in an
+      "Aircraft" channel with callsign, altitude, distance, speed and heading (see <a href="#aircraft">below</a>).
       <span class="branch">beala/main</span></li>
     <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
       This uses Semtech's reference table, so settings up to 22 dBm give the power they say.
@@ -465,6 +469,30 @@
       away from the mesh while tracking; no MeshCore packets lost after the start-up scan.</li>
   </ul>
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/weather_sensors.md">docs/weather_sensors.md</a>.</p>
+
+  <h2 id="aircraft">Aircraft<a class="anchor" href="#aircraft" aria-label="Copy link to this section">#</a></h2>
+  <p>Light aircraft in the US report their position about once a second on 978&nbsp;MHz (UAT ADS-B). A radio with an
+    LR2021 (X1, AB Labs XIAO) can listen in short breaks from the mesh and post each aircraft to an "Aircraft" channel:
+    <code>N501EL a63e16 6,200 ft, 2.1 mi SW, 88 kt heading 214</code>. Nothing is ever sent on 978&nbsp;MHz.</p>
+  <ol>
+    <li>In the <a href="#radio-console">Radio console</a>, run <code>air on</code> (listens 10% of the time), or
+      <code>air scan on</code> to listen all the time with a console note for each new aircraft.</li>
+    <li>Disconnect and reconnect the app. A channel named <strong>Aircraft</strong> appears.</li>
+    <li>Set your location in the app for distance and direction.</li>
+  </ol>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved)</td></tr>
+    <tr><td><code>air scan on</code><br><code>air scan off</code></td><td>Listen all the time; the mesh isn't heard meanwhile (not saved)</td></tr>
+    <tr><td><code>get air.planes</code></td><td>Aircraft heard in the last 5 minutes</td></tr>
+    <tr><td><code>set air.every &lt;minutes&gt;</code></td><td>How often the same aircraft is posted again (default 10)</td></tr>
+    <tr><td><code>set air.range &lt;miles&gt;</code></td><td>Only aircraft closer than this (default: any)</td></tr>
+    <tr><td><code>set air.duty &lt;percent&gt;</code></td><td>Share of the time spent listening (default 10)</td></tr>
+    <tr><td><code>get air.stats</code></td><td>Messages, corrections, aircraft, posts</td></tr>
+  </table>
+  </div>
+  <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/aircraft.md">docs/aircraft.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
