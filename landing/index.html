@@ -15,18 +15,13 @@
 <p>FluxCore is a MeshCore fork for trying things. New features, and experiments that might turn into something useful.</p>
 <p>The goal is simple: move quickly and stay compatible with vanilla MeshCore. Keep using the network that’s already there. Give new ideas somewhere to run.</p>
 <div class="jump"><a class="primary" href="/flash/">Flash a radio →</a><a href="/docs/">Read the docs →</a></div>
-<section class="section" aria-labelledby="changes"><h2 id="changes"><span class="slash" aria-hidden="true">/</span>A few things to try</h2>
+<section class="section" aria-labelledby="changes"><h2 id="changes"><span class="slash" aria-hidden="true">/</span>Features in flux</h2>
 <div class="feature">
 <p><strong>A second chance for missed packets.</strong> If your radio doesn’t hear a repeater forward its message, it sends the packet once more. Nodes that already have it ignore the duplicate. <a href="/docs/#flood-retry">Retries</a></p>
 <p><strong>One identity, several radios.</strong> Keep one at home and carry another. Pick a main radio; backups hold their replies when they hear it answer. This coordinates replies—it doesn’t sync your message history. <a href="/docs/#clone-takeover">Takeover</a></p>
 <p><strong>Find the radio you put somewhere sensible.</strong> Make it beep from an authorized radio. Two supported LR2021 radios can also measure the distance between them, with a direct link in the supported 902–928 MHz band. <a href="/docs/#find-me">Find me</a></p>
 </div>
 <p class="note">Also: packet parser fixes, improved key generation, radio diagnostics, and opt-in experimental encryption. <a href="/docs/#differences">All the changes.</a></p>
-</section>
-<section class="section" aria-labelledby="approach"><h2 id="approach"><span class="slash" aria-hidden="true">/</span>Build it. Try it. Learn something.</h2>
-<p>FluxCore exists to shorten the distance between “what if?” and running code on a radio. Try ideas early. Test them on real hardware. Write down what works and what doesn’t. Bring useful changes back upstream.</p>
-<p>Compatibility is the goal, and experiments should be explicit. Ordinary messages use MeshCore’s legacy format by default. Encryption v2 is opt-in and needs support at both ends; existing repeaters can forward it.</p>
-<p class="note">These builds track upstream dev. Things can break. Encryption v2 has not been independently reviewed. Check the <a href="/docs/#boards">supported boards</a> and <a href="https://github.com/beala/MeshCore/releases">release notes</a> before flashing.</p>
 </section>
 <div class="closing"><p>Got an idea? Found something broken?</p><a href="https://github.com/beala/MeshCore">The code is here. ↗</a></div>
 <footer><span>fluxcore / independent MeshCore fork</span><a href="/docs/">Documentation</a></footer>
