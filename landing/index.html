@@ -41,6 +41,8 @@ h2{font-size:15px;font-weight:700;line-height:1.5;margin:0 0 25px;color:var(--hi
 footer{border-top:1px dashed var(--line);padding:19px 0 34px;margin-top:42px;display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--sub)}
 footer a{text-decoration:none;color:var(--sub)}
 footer{flex-wrap:wrap;row-gap:6px}
+code{color:var(--hi)}
+.tag{display:inline-block;border:1px solid var(--acid);color:var(--acid);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:0 6px;margin:0 2px 0 0;line-height:1.6;vertical-align:1px}
 .credit{flex-basis:100%}
 .slash{color:var(--acid);margin-right:10px}
 @media(max-width:600px){nav{padding:23px 24px;justify-content:flex-start;gap:22px;font-size:12px}main{margin-top:36px;width:calc(100% - 48px)}h1{font-size:58px;letter-spacing:-3px}.intro{font-size:19px}body{font-size:15px}.section{margin-top:35px}.jump{gap:20px;font-size:13px}footer{flex-direction:column;gap:5px}.status{font-size:11px}}
@@ -50,15 +52,17 @@ footer{flex-wrap:wrap;row-gap:6px}
 <nav aria-label="Main navigation"><a href="/flash/">Flasher</a><a href="/docs/">Docs</a><a href="https://github.com/beala/MeshCore">Source ↗</a></nav>
 <main>
 <header><h1>fluxcore<span class="cursor" aria-hidden="true"></span></h1><div class="status"><span class="signal" aria-hidden="true"></span>FIRMWARE IN FLUX</div></header>
-<p class="intro">fluxcore is a lab for ideas.</p>
-<p>fluxcore is a MeshCore fork built to move fast without breaking compatibility with the existing network.</p>
-<p>Here we don’t ask why. We ask why not.</p>
+<p class="intro">A lab for ideas.</p>
+<p>I’ve created a new MeshCore fork for testing out ideas that will likely never be accepted upstream. I develop on main, anything goes, and it’s complete chaos. But it’s fun.</p>
+<p>Here I don’t ask why. I ask why not.</p>
 <div class="jump"><a class="primary" href="/flash/">Flash a radio →</a><a href="/docs/">Read the docs →</a></div>
 <section class="section" aria-labelledby="changes"><h2 id="changes"><span class="slash" aria-hidden="true">/</span>Features in flux</h2>
 <div class="feature">
-<p><strong>A second chance for missed packets.</strong> If your radio doesn’t hear a repeater forward its message, it sends the packet once more. Nodes that already have it ignore the duplicate. <a href="/docs/#flood-retry">Retries</a></p>
-<p><strong>One identity, several radios.</strong> Keep one at home and carry another. Pick a main radio; backups hold their replies when they hear it answer. This coordinates replies—it doesn’t sync your message history. <a href="/docs/#clone-takeover">Takeover</a></p>
-<p><strong>Find the radio you put somewhere sensible.</strong> Make it beep from an authorized radio. Two supported LR2021 radios can also measure the distance between them, with a direct link in the supported 902–928 MHz band. <a href="/docs/#find-me">Find me</a></p>
+<p><strong>Special LR2021 features.</strong> I learned a lot reverse engineering the LR2021, so nodes with this chip get special treatment. <a href="https://github.com/beala/lr2021-re">The research ↗</a></p>
+<p><strong>Eavesdrop on the other network.</strong> <span class="tag">LR2021 only</span> Type <code>mt on</code> to scan both frequencies. A custom PRAM patch does this entirely in the LoRa chip, so the MCU can rest. 😴 <a href="/docs/#meshtastic">Meshtastic</a></p>
+<p><strong>Time-of-flight ranging.</strong> <span class="tag">LR2021 only</span> Find the distance between two nodes without GPS. <a href="/docs/#find-me">Find me</a></p>
+<p><strong>Share a key between radios.</strong> Normally two radios with the same key break DMs, but fluxcore detects when it hears its clone and asks if it should take over as the primary. <a href="/docs/#clone-takeover">Takeover</a></p>
+<p><strong>Little things that bugged me.</strong> Messages that don’t make it out get sent once more. Plugging a radio in to charge doesn’t turn it on anymore (on most boards). The buzzer, vibration and LEDs each get their own off switch. And you can type commands like <code>/path</code> right in a chat. <a href="/docs/#differences">The rest</a></p>
 </div>
 <p class="note">Also: packet parser fixes, improved key generation, radio diagnostics, and opt-in experimental encryption. <a href="/docs/#differences">All the changes.</a></p>
 </section>
