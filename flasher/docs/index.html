@@ -69,6 +69,7 @@
     <a href="#flood-retry">Flood retry</a>
     <a href="#clone-takeover">One key, several radios</a>
     <a href="#chat-commands">Commands in a chat</a>
+    <a href="#meshtastic">Meshtastic channel</a>
     <a href="#encryption">Encryption v2</a>
     <a href="#key-randomness">Key randomness</a>
     <a href="#commands">New commands</a>
@@ -348,6 +349,60 @@
   <p>Commands only run when you type them in your own app: a <code>/</code> message someone sends you is shown as
     text. More detail is in
     <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/chat_commands.md">docs/chat_commands.md</a>.</p>
+
+  <h2 id="meshtastic">Meshtastic channel<a class="anchor" href="#meshtastic" aria-label="Copy link to this section">#</a></h2>
+  <p>A radio with an LR2021 (X1, AB Labs XIAO) can listen to a Meshtastic channel as well as MeshCore. Meshtastic
+    texts show up in the MeshCore app as one more channel, "Meshtastic LongFast", after your own. The app needs no
+    changes. Nothing is ever sent on Meshtastic, and nothing heard there is passed on to MeshCore.</p>
+
+  <h3 id="meshtastic-how">How to use it<a class="anchor" href="#meshtastic-how" aria-label="Copy link to this section">#</a></h3>
+  <ol>
+    <li>In the <a href="#radio-console">Radio console</a> (or the app's command line), run <code>mt on</code>.</li>
+    <li>Disconnect and reconnect the app. A channel named <strong>Meshtastic LongFast</strong> appears.</li>
+    <li>Texts arrive as <code>Name: text</code>. The sender shows as <code>!a1b2c3d4</code> until the radio hears their
+      node info, then by name. Long texts are split over several messages.</li>
+  </ol>
+  <p>By default it listens to the public US LongFast channel: 906.875&nbsp;MHz, default key. Text typed into the
+    Meshtastic channel isn't sent; the radio answers that the channel is receive-only.</p>
+
+  <h3 id="meshtastic-commands">Commands<a class="anchor" href="#meshtastic-commands" aria-label="Copy link to this section">#</a></h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>mt on</code><br><code>mt off</code></td><td>Start or stop listening (saved)</td></tr>
+    <tr><td><code>mt</code> or <code>get mt</code></td><td>The settings</td></tr>
+    <tr><td><code>set mt.preset &lt;name&gt;</code></td><td><code>LongFast</code> (default), <code>LongModerate</code>, <code>LongSlow</code>, <code>MediumFast</code>, <code>MediumSlow</code>, <code>ShortFast</code>, <code>ShortSlow</code>, <code>ShortTurbo</code></td></tr>
+    <tr><td><code>set mt.freq &lt;MHz&gt;</code><br><code>set mt.freq auto</code></td><td>The frequency. <code>auto</code> is the preset's default US slot (LongFast: 906.875)</td></tr>
+    <tr><td><code>set mt.channel &lt;name&gt;</code><br><code>set mt.channel default</code></td><td>The channel name (default: the preset's name, as for a primary channel)</td></tr>
+    <tr><td><code>set mt.key &lt;base64&gt;</code><br><code>set mt.key default</code></td><td>The channel key as the Meshtastic app shows it (default <code>AQ==</code>)</td></tr>
+    <tr><td><code>get mt.stats</code></td><td>What it has heard: texts, names, repeats, other channels, DMs</td></tr>
+    <tr><td><code>get radio.scan</code></td><td>The radio's channel hopping: checks run, packets per network</td></tr>
+  </table>
+  </div>
+
+  <h3 id="meshtastic-limits">What it doesn't do<a class="anchor" href="#meshtastic-limits" aria-label="Copy link to this section">#</a></h3>
+  <ul>
+    <li>Send anything on Meshtastic, or show DMs, positions or telemetry.</li>
+    <li>Hear MeshCore while it's receiving a Meshtastic packet (a LongFast text takes up to 2&nbsp;s on air). On a busy
+      LongFast mesh this costs some MeshCore packets.</li>
+  </ul>
+
+  <h3 id="meshtastic-technical">Technical details<a class="anchor" href="#meshtastic-technical" aria-label="Copy link to this section">#</a></h3>
+  <ul>
+    <li>The LR2021's own CPU hops between MeshCore and Meshtastic, each with its own frequency, modulation, preamble
+      and sync word, from a small program loaded into its patch RAM. It checks each channel for a preamble about every
+      20&nbsp;ms and stays on the first one with a packet. The phone-side processor sleeps through it (95% idle while
+      scanning).</li>
+    <li>While Meshtastic is on, that program takes the place of Semtech's patch in the radio. <code>mt off</code>
+      puts the patch back.</li>
+    <li>Transmits always use MeshCore's settings: the hopping stops first and resumes after.</li>
+    <li>Bench, an hour of random traffic: 1051/1052 MeshCore and 1054/1055 Meshtastic packets received; a later
+      fix recovers the remaining misses.</li>
+    <li>Decoding is written from the on-air format (header, channel hash, AES-CTR, protobuf); no Meshtastic code is
+      used.</li>
+  </ul>
+  <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/meshtastic_channel.md">docs/meshtastic_channel.md</a>.
+    Source: <a href="https://github.com/beala/MeshCore/tree/beala/main"><code>beala/main</code></a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
