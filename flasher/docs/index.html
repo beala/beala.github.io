@@ -103,8 +103,8 @@
       shows its texts in the app as one more channel. Receive only; the radio chip hops between the two networks by
       itself (see <a href="#meshtastic">below</a>).
       <span class="branch">beala/main</span></li>
-    <li><strong>Weather sensors.</strong> With <code>wx on</code>, readings from Ecowitt, Ambient Weather and other Fine
-      Offset sensors show in the app as a "Weather" channel. The radio steps away from the mesh only around each
+    <li><strong>Weather sensors.</strong> With <code>wx on</code>, readings from Ecowitt, Ambient Weather, other Fine
+      Offset and La Crosse View sensors show in the app as a "Weather" channel. The radio steps away from the mesh only around each
       sensor's next packet (see <a href="#weather">below</a>).
       <span class="branch">beala/main</span></li>
     <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
@@ -415,22 +415,27 @@
     Source: <a href="https://github.com/beala/MeshCore/tree/beala/main"><code>beala/main</code></a>.</p>
 
   <h2 id="weather">Weather sensors<a class="anchor" href="#weather" aria-label="Copy link to this section">#</a></h2>
-  <p>A radio with an LR2021 (X1, AB Labs XIAO) can pick up wireless weather sensors from Ecowitt, Ambient Weather and
-    other Fine Offset models (Froggit, Misol, ...) on 915&nbsp;MHz. Their readings show in the MeshCore app as one more
+  <p>A radio with an LR2021 (X1, AB Labs XIAO) can pick up wireless weather sensors from Ecowitt, Ambient Weather,
+    other Fine Offset models (Froggit, Misol, ...) and La Crosse View on 915&nbsp;MHz. Their readings show in the MeshCore app as one more
     channel, "Weather". Nothing is sent, and the app needs no changes.</p>
 
   <h3 id="weather-how">How to use it<a class="anchor" href="#weather-how" aria-label="Copy link to this section">#</a></h3>
   <ol>
     <li>In the <a href="#radio-console">Radio console</a> (or the app's command line), run <code>wx on</code>. The
-      radio listens for sensors for 85&nbsp;s; it doesn't hear the mesh during that time.</li>
+      radio listens for sensors for about 3 minutes (it doesn't hear the mesh during that time), then lists what it
+      found in the console.</li>
     <li>Disconnect and reconnect the app. A channel named <strong>Weather</strong> appears after your own (and after
       Meshtastic's, if that's on).</li>
     <li>Each sensor posts its first reading, then one every 30 minutes, for example
       <code>WH65 5a: 68.0F 50% wind 6 N gust 10 mph rain 1.00 in UV 0.0 1234 lux</code>. Lightning and the start of
       rain post straight away.</li>
   </ol>
-  <p>Sensors covered: WH65/WS-2902 outdoor arrays, WH31 thermo-hygrometers, WH40 rain, WH57 lightning, WS80/WS85/WS90,
-    WN34/WN38 probes, WH45 air quality, WH51 soil moisture. Not yet: Acurite, La Crosse and Davis.</p>
+  <p><strong>Looking for sensors</strong>, e.g. driving around: <code>wx scan on</code> listens all the time and posts
+    each new sensor to the console the moment it's heard. The mesh isn't heard meanwhile (sending still works);
+    <code>wx scan off</code> goes back to normal.</p>
+  <p>Sensors covered: Ecowitt/Ambient WH65 and WS-2902 outdoor arrays, WH31 thermo-hygrometers, WH40 rain, WH57
+    lightning, WS80/WS85/WS90, WN34/WN38 probes, WH45 air quality, WH51 soil moisture; La Crosse View LTV-TH2/TH3,
+    LTV-WSDTH01 Breeze Pro, LTV-W1/W2 wind, LTV-R1 rain. Not yet: Acurite and Davis.</p>
 
   <h3 id="weather-commands">Commands<a class="anchor" href="#weather-commands" aria-label="Copy link to this section">#</a></h3>
   <div class="table-wrap">
@@ -438,7 +443,9 @@
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>wx on</code><br><code>wx off</code></td><td>Start or stop (saved)</td></tr>
     <tr><td><code>wx</code> or <code>get wx</code></td><td>The settings</td></tr>
-    <tr><td><code>wx scan</code></td><td>Listen for sensors without a break for 85&nbsp;s</td></tr>
+    <tr><td><code>wx scan</code></td><td>Listen for sensors without a break (85&nbsp;s per brand), then list them in the console</td></tr>
+    <tr><td><code>wx scan on</code><br><code>wx scan off</code></td><td>Listen all the time, with a console note for each new sensor (not saved)</td></tr>
+    <tr><td><code>set wx.kind ecowitt</code><br><code>set wx.kind lacrosse</code><br><code>set wx.kind both</code></td><td>Which brands to listen for (default both)</td></tr>
     <tr><td><code>get wx.sensors</code></td><td>Each sensor heard: model, label, packets, interval, signal, last heard</td></tr>
     <tr><td><code>set wx.units us</code><br><code>set wx.units metric</code></td><td>&deg;F, mph, inches (default) or &deg;C, m/s, mm</td></tr>
     <tr><td><code>set wx.every &lt;minutes&gt;</code></td><td>How often each sensor posts (default 30; 0 = first reading and alerts only)</td></tr>
@@ -450,7 +457,7 @@
 
   <h3 id="weather-technical">Technical details<a class="anchor" href="#weather-technical" aria-label="Copy link to this section">#</a></h3>
   <ul>
-    <li>The sensors send short FSK packets (17.24&nbsp;kbit/s) at a fixed interval: 16&nbsp;s for an outdoor array,
+    <li>The sensors send short FSK packets (Ecowitt 17.24&nbsp;kbit/s, La Crosse 9.6&nbsp;kbit/s) at a fixed interval: 16&nbsp;s for an outdoor array,
       61&nbsp;s for a WH31. The radio learns each interval and switches from LoRa to FSK for about 0.3&nbsp;s around
       each expected packet, then straight back. A sensor that goes quiet is hunted with short listens at random gaps.</li>
     <li>Mesh traffic comes first: a listen waits for an incoming mesh packet, and a transmit ends a listen.</li>
