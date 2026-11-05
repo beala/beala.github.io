@@ -46,6 +46,8 @@
   h2, h3 { scroll-margin-top: 16px; }
   footer { border-top:1px dashed var(--line); margin-top:52px; padding:19px 0 0; display:flex; justify-content:space-between; gap:16px; font:11px var(--mono); color:var(--muted); }
   footer a { text-decoration:none; color:var(--muted); }
+  footer { flex-wrap:wrap; row-gap:6px; }
+  .credit { flex-basis:100%; }
   @media (max-width:600px) { .top { padding:23px 24px; } h1 { letter-spacing:-2px; } footer { flex-direction:column; gap:5px; } }
   @media (prefers-reduced-motion:reduce) { .cursor { animation:none; } }
 </style>
@@ -537,7 +539,7 @@
     <code>beala-&lt;commit&gt;</code>. This site checks for new releases every 15 minutes and republishes.</p>
   <p>The release notes list what changed since the previous release, with a link to the full diff against upstream.
     The branch names next to each feature above are where that change is kept for sending upstream.</p>
-  <footer><span>fluxcore / independent MeshCore fork</span><a href="/">fluxcore.party</a></footer>
+  <footer><span>fluxcore / independent MeshCore fork</span><a href="/">fluxcore.party</a><span class="credit">A project from AB Labs LLC and Unmatched Designs</span></footer>
 </main>
 <script>
   // clicking a heading's # copies the full link to that section
