@@ -14,7 +14,8 @@ list from a server endpoint, /releases. This script replaces that endpoint with 
   <out>/flash/firmware/<file>   erase images and bootloaders referenced by the device catalog
   <out>/flash/config.json       the official device catalog, cut down to the devices in settings.json
 
-Usage: build.py <flasher checkout> <output dir>
+Usage: build.py [--preview] <flasher checkout> <output dir>
+--preview skips downloading firmware files; worker.js fetches them on demand instead (see dev.sh).
 Set GITHUB_TOKEN to avoid API rate limits.
 """
 import html
@@ -161,7 +162,7 @@ def release_source_key(firmware):
     return next((k for k in firmware if k.startswith("github")), None)
 
 
-def main(flasher_dir, out_dir):
+def main(flasher_dir, out_dir, preview=False):
     settings = json.loads((HERE / "settings.json").read_text())
     flasher_dir, site = Path(flasher_dir), Path(out_dir)
     out = site / BASE.strip("/")
@@ -220,6 +221,8 @@ def main(flasher_dir, out_dir):
         static_files.update(d.get("bootloader", []))
     (out / "firmware").mkdir(exist_ok=True)
     for name in sorted(static_files):
+        if preview:
+            continue
         try:
             (out / "firmware" / name).write_bytes(fetch(f"{OFFICIAL_STATIC}/{name}"))
             print(f"static   {name}")
@@ -246,7 +249,8 @@ def main(flasher_dir, out_dir):
                 continue
             dest = out / "fw" / tag / asset["name"]
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_bytes(fetch(asset["browser_download_url"]))
+            if not preview:
+                dest.write_bytes(fetch(asset["browser_download_url"]))
             files.append({"name": asset["name"], "url": f"{BASE}/fw/{tag}/{asset['name']}"})
         print(f"release  {tag}: {len(files)} files")
         # The flasher shows notes as plain text with URLs auto-linked, so flatten Markdown links
@@ -267,6 +271,7 @@ def main(flasher_dir, out_dir):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    args = [a for a in sys.argv[1:] if a != "--preview"]
+    if len(args) != 2:
         sys.exit(__doc__)
-    main(sys.argv[1], sys.argv[2])
+    main(*args, preview="--preview" in sys.argv)
