@@ -9,10 +9,41 @@
   "devices": [
     "Heltec Mesh Node T1",
     "Seeed Studio SenseCAP MeshTracker X1",
+    "AB Labs XIAO nRF52 LR2021",
     "RAK WisMesh Tag",
     "Seeed Studio SenseCAP T1000-E",
     "Heltec v3",
     "Heltec v4",
     "RAK WisMesh 1W Booster (3401 + 13302)"
+  ],
+  "extra_devices": [
+    {
+      "like": "Seeed Studio Xiao nRF52 WIO",
+      "name": "AB Labs XIAO nRF52 LR2021",
+      "firmware": [
+        {
+          "class": "community",
+          "role": "companionBle",
+          "github": {
+            "type": "companion",
+            "files": {
+              "flash": "AB_Xiao_nrf52_LR2021_companion_radio_ble.*?\\.zip",
+              "download": "AB_Xiao_nrf52_LR2021_companion_radio_ble.*?\\.uf2"
+            }
+          }
+        },
+        {
+          "class": "community",
+          "role": "companionUsb",
+          "github": {
+            "type": "companion",
+            "files": {
+              "flash": "AB_Xiao_nrf52_LR2021_companion_radio_usb.*?\\.zip",
+              "download": "AB_Xiao_nrf52_LR2021_companion_radio_usb.*?\\.uf2"
+            }
+          }
+        }
+      ]
+    }
   ]
 }

@@ -193,6 +193,15 @@ def main(flasher_dir, out_dir, preview=False):
     # 2. Device catalog: only our devices, and only firmware that comes from GitHub releases
     config = json.loads((out / "config.json").read_text())
     by_name = {d["name"]: d for d in config["device"]}
+    # Boards the official catalog doesn't have: a copy of a similar official entry (bootloaders,
+    # erase image, picture) with its own name and firmware files
+    for extra in settings.get("extra_devices", []):
+        base = by_name.get(extra["like"])
+        if base is None:
+            sys.exit(f"extra_devices: {extra['name']} is like {extra['like']}, which isn't in the flasher catalog")
+        device = json.loads(json.dumps(base))
+        device.update({k: v for k, v in extra.items() if k != "like"})
+        by_name[extra["name"]] = device
     missing = [n for n in settings["devices"] if n not in by_name]
     if missing:
         sys.exit(f"Devices not in the flasher catalog (check the names): {missing}")
