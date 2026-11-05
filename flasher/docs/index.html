@@ -10,7 +10,9 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; background:var(--bg); }
   body { margin:0; min-height:100vh; background:radial-gradient(ellipse 80% 600px at 50% 0,#0c1d0c,transparent) var(--bg) no-repeat; color:var(--fg); font:15px/1.75 var(--mono); }
-  body::after { content:""; position:fixed; inset:0; pointer-events:none; z-index:10; background:repeating-linear-gradient(0deg,rgb(0 0 0/.22) 0 1px,transparent 1px 3px); }
+  /* scanlines on the title only */
+  h1 { position:relative; width:fit-content; }
+  h1::after { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,rgb(0 0 0/.22) 0 1px,transparent 1px 3px); }
   ::selection { background:var(--acid); color:var(--ink); }
   .top { max-width:1140px; margin:0 auto; padding:28px 32px; display:flex; justify-content:space-between; gap:25px; font:13px var(--mono); }
   .top a { text-decoration:none; color:var(--muted); }

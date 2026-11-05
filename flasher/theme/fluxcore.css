@@ -41,8 +41,9 @@ body.fluxcore {
   font-family: var(--mono);
 }
 html:has(body.fluxcore) { background: #050805; }
-/* Faint scanlines */
-body.fluxcore::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 10000;
+/* Scanlines on the logo only */
+body.fluxcore #app .fc-logo a { position: relative; }
+body.fluxcore #app .fc-logo a::after { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: repeating-linear-gradient(0deg, rgb(0 0 0 / .22) 0 1px, transparent 1px 3px); }
 body.fluxcore ::selection { background: var(--acid); color: var(--ink); }
 
