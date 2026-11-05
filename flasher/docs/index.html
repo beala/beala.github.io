@@ -64,6 +64,7 @@
     <a href="#find-me">Find me</a>
     <a href="#flood-retry">Flood retry</a>
     <a href="#clone-takeover">One key, several radios</a>
+    <a href="#chat-commands">Commands in a chat</a>
     <a href="#encryption">Encryption v2</a>
     <a href="#key-randomness">Key randomness</a>
     <a href="#commands">New commands</a>
@@ -134,6 +135,11 @@
     key still show the messages they hear but never answer them, so senders get one reply and one path, and
     "delivered" means the main radio has it. A <em>Radio console</em> contact in the app runs radio commands and tells you when another radio with
     your key is heard (see <a href="#clone-takeover">below</a>).
+    <span class="branch">beala/main</span></p>
+
+  <p><strong>Commands in a chat.</strong> Type <code>/range</code>, <code>/crypto v2</code> or <code>/path</code>
+    in a DM, or <code>/crypto</code> in a channel, and the radio runs it for that chat instead of sending it. The
+    reply shows in the same chat (see <a href="#chat-commands">below</a>).
     <span class="branch">beala/main</span></p>
 
   <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
@@ -332,6 +338,27 @@
     key, to the main radio; a backup elsewhere only gets messages that come by flood. Messages you send from one radio don't show up on the others. More detail and
     bench results are in
     <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/clone_takeover.md">docs/clone_takeover.md</a>.</p>
+
+  <h2 id="chat-commands">Commands in a chat<a class="anchor" href="#chat-commands" aria-label="Copy link to this section">#</a></h2>
+  <p>A message that starts with <code>/</code> in a DM or a channel isn't sent. Your radio runs it as a command
+    for that chat, and the reply shows in the same chat, starting with &#9881; so it doesn't read as something the
+    contact wrote. Nobody else sees the command or the reply. Send <code>/help</code> in a chat to see what works
+    there. To send text that starts with <code>/</code>, type <code>//</code>.</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>Where</th><th>What it does</th></tr>
+    <tr><td><code>/help</code></td><td>DM, channel</td><td>List the commands for this chat</td></tr>
+    <tr><td><code>/range</code></td><td>DM</td><td>Measure the distance to this contact (two LR2021 radios, see <a href="#find-me">Find me</a>). The answer shows a few seconds later</td></tr>
+    <tr><td><code>/beep</code>, <code>/beep stop</code></td><td>DM</td><td>Make this contact's radio beep, if they've allowed you, or stop it</td></tr>
+    <tr><td><code>/crypto</code></td><td>DM, channel</td><td>Show the <a href="#encryption">encryption</a> used with this contact or on this channel</td></tr>
+    <tr><td><code>/crypto legacy</code>, <code>v2</code>, <code>v2only</code></td><td>DM, channel</td><td>Change it</td></tr>
+    <tr><td><code>/path</code></td><td>DM</td><td>Show the route to this contact: flood, direct, or the repeaters it goes through</td></tr>
+    <tr><td><code>/path reset</code></td><td>DM</td><td>Forget the route, so the next message goes by flood and finds a new one</td></tr>
+  </table>
+  </div>
+  <p>Commands only run when you type them in your own app: a <code>/</code> message someone sends you is shown as
+    text. More detail is in
+    <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/chat_commands.md">docs/chat_commands.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
