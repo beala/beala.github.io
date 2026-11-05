@@ -2,7 +2,7 @@
    build.py adds this after the flasher's own CSS and sets <body class="dark fluxcore">,
    so these override BeerCSS's dark theme colors. */
 body.fluxcore {
-  --bg: #050805; --fg: #b4eeac; --hi: #e0ffda; --sub: #6b9a64; --line: #1c331b; --acid: #3dff6e; --ink: #031003;
+  --bg: #050805; --fg: #b4eeac; --hi: #e0ffda; --sub: #8fbd87; --line: #1c331b; --acid: #3dff6e; --ink: #031003;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace;
   --font: var(--mono);
   --primary: var(--acid);
@@ -94,7 +94,7 @@ body.fluxcore:has([v-cloak]):after { border-color: var(--acid); }
 /* Docs and home links, pinned to a corner */
 .fc-corner { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: flex; gap: 8px;
   font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; }
-.fc-corner a { padding: 6px 10px; background: #050805; color: #6b9a64; border: 1px solid #1c331b; text-decoration: none; }
+.fc-corner a { padding: 6px 10px; background: #050805; color: #8fbd87; border: 1px solid #1c331b; text-decoration: none; }
 .fc-corner a.fc-primary { color: #3dff6e; border-color: #3dff6e; }
 .fc-corner a:hover { background: #3dff6e; color: #031003; }
 
