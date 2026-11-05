@@ -1,7 +1,7 @@
 name: Flasher
 
 # Publishes fluxcore.party to Cloudflare: the landing page (landing/), the docs (flasher/docs) and the
-# FluxCore flasher at /flash/ (the MeshCore web flasher, restyled), serving firmware from the beala-*
+# fluxcore flasher at /flash/ (the MeshCore web flasher, restyled), serving firmware from the beala-*
 # releases of beala/MeshCore. Settings (devices, how many releases, flasher version) are in
 # flasher/settings.json; the Cloudflare Worker is set up in wrangler.jsonc.
 # Needs repo secrets CLOUDFLARE_API_TOKEN (Workers edit permission) and CLOUDFLARE_ACCOUNT_ID.

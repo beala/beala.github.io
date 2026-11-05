@@ -70,7 +70,7 @@ def fetch(url, accept=None):
 CORNER_LINKS = ('<div class="fc-corner"><a href="/">fluxcore.party</a>'
                 '<a class="fc-primary" href="/docs/">Docs &amp; what\'s different</a></div>')
 
-# FluxCore logo, in place of the MeshCore logo image in the flasher's header
+# fluxcore logo, in place of the MeshCore logo image in the flasher's header
 LOGO_OLD = '<img :src="`/flash/img/${logoFile}`" v-if="!isIframe"> <span>flasher</span>'
 LOGO_NEW = ('<span class="fc-logo"><a href="/">fluxcore<span class="fc-cursor"></span></a>'
             '<span class="fc-sub">flasher</span></span>')

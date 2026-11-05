@@ -1,4 +1,4 @@
-/* FluxCore theme for the MeshCore web flasher, matching fluxcore.party.
+/* fluxcore theme for the MeshCore web flasher, matching fluxcore.party.
    build.py adds this after the flasher's own CSS and sets <body class="dark fluxcore">,
    so these override BeerCSS's dark theme colors. */
 body.fluxcore {

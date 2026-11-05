@@ -4,7 +4,7 @@
   "firmware_repo": "beala/MeshCore",
   "release_tag_prefix": "beala-",
   "keep_releases": 5,
-  "title": "FluxCore flasher",
+  "title": "fluxcore flasher",
   "site_host": "fluxcore.party",
   "devices": [
     "Heltec Mesh Node T1",
