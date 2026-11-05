@@ -1,10 +1,11 @@
 name: Flasher
 
-# Publishes the FluxCore flasher (the MeshCore web flasher, restyled) to Cloudflare at flash.fluxcore.party,
-# serving firmware from the beala-* releases of beala/MeshCore. Settings (devices, how many releases,
-# flasher version) are in flasher/settings.json; the Cloudflare Worker is set up in flasher/wrangler.jsonc.
+# Publishes fluxcore.party to Cloudflare: the landing page (landing/), the docs (flasher/docs) and the
+# FluxCore flasher at /flash/ (the MeshCore web flasher, restyled), serving firmware from the beala-*
+# releases of beala/MeshCore. Settings (devices, how many releases, flasher version) are in
+# flasher/settings.json; the Cloudflare Worker is set up in wrangler.jsonc.
 # Needs repo secrets CLOUDFLARE_API_TOKEN (Workers edit permission) and CLOUDFLARE_ACCOUNT_ID.
-# Only the flasher is published: the other files in this repo are not part of the site.
+# The old blog files at the top of this repo are not part of the site.
 
 on:
   schedule:
@@ -12,7 +13,7 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
-    paths: ['flasher/**', '.github/workflows/flasher.yml']
+    paths: ['flasher/**', 'landing/**', 'worker.js', 'wrangler.jsonc', '.github/workflows/flasher.yml']
 
 permissions:
   contents: read
@@ -38,8 +39,8 @@ jobs:
           # curl --retry only retries timeouts and HTTP 408, 429, 500, 502, 503, 504
           LATEST=$(curl -fsS --retry 3 --retry-delay 10 --retry-max-time 120 -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases?per_page=30" \
             | jq -r --arg p "$PREFIX" '[.[] | select(.draft | not) | select(.tag_name | startswith($p))] | sort_by(.published_at) | last | .tag_name')
-          # firmware URLs on the site look like /fw/<tag>/<file>
-          SERVED=$(curl -fsS --retry 3 --retry-delay 10 --retry-max-time 120 "https://$(jq -r .site_host flasher/settings.json)/releases" | jq -r '.[0].files[0].url' | cut -d/ -f3 || true)
+          # firmware URLs on the site look like /flash/fw/<tag>/<file>
+          SERVED=$(curl -fsS --retry 3 --retry-delay 10 --retry-max-time 120 "https://$(jq -r .site_host flasher/settings.json)/flash/releases" | jq -r '.[0].files[0].url' | cut -d/ -f4 || true)
           echo "latest release: $LATEST, site serves: ${SERVED:-nothing}"
           if [ "${{ github.event_name }}" = "schedule" ] && [ -n "$LATEST" ] && [ "$LATEST" = "$SERVED" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
@@ -67,4 +68,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx -y wrangler@4 deploy -c flasher/wrangler.jsonc || { echo "deploy failed, retrying in 60 s"; sleep 60; npx -y wrangler@4 deploy -c flasher/wrangler.jsonc; }
+          npx -y wrangler@4 deploy || { echo "deploy failed, retrying in 60 s"; sleep 60; npx -y wrangler@4 deploy; }

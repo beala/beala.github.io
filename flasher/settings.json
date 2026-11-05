@@ -5,7 +5,7 @@
   "release_tag_prefix": "beala-",
   "keep_releases": 5,
   "title": "FluxCore flasher",
-  "site_host": "flash.fluxcore.party",
+  "site_host": "fluxcore.party",
   "devices": [
     "Heltec Mesh Node T1",
     "Seeed Studio SenseCAP MeshTracker X1",

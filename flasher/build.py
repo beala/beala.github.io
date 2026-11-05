@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""Builds a static copy of the MeshCore web flasher that serves firmware from your own releases.
+"""Builds fluxcore.party: the landing page, the docs, and a static copy of the MeshCore web flasher
+that serves firmware from your own releases.
+
+  <out>/                        landing page (landing/)
+  <out>/docs/                   docs page (flasher/docs), with the latest build filled in
+  <out>/flash/                  the flasher, moved from / to /flash/ and restyled
 
 The official flasher (meshcore-dev/flasher.meshcore.io) is a static site, but it gets its firmware
 list from a server endpoint, /releases. This script replaces that endpoint with static files:
 
-  <out>/releases          JSON list of releases, as the flasher's /releases endpoint returns it
-  <out>/fw/<tag>/<file>   firmware files from those releases (same origin, so the browser can fetch them)
-  <out>/firmware/<file>   erase images and bootloaders referenced by the device catalog
-  <out>/config.json       the official device catalog, cut down to the devices in settings.json
-  <out>/docs/             docs page (flasher/docs), with the latest build filled in
+  <out>/flash/releases          JSON list of releases, as the flasher's /releases endpoint returns it
+  <out>/flash/fw/<tag>/<file>   firmware files from those releases (same origin, so the browser can fetch them)
+  <out>/flash/firmware/<file>   erase images and bootloaders referenced by the device catalog
+  <out>/flash/config.json       the official device catalog, cut down to the devices in settings.json
 
 Usage: build.py <flasher checkout> <output dir>
 Set GITHUB_TOKEN to avoid API rate limits.
@@ -62,20 +66,20 @@ def fetch(url, accept=None):
 
 
 # Links to the docs and the home page, pinned to a corner of the flasher
-CORNER_LINKS = ('<div class="fc-corner"><a href="https://fluxcore.party/">fluxcore.party</a>'
+CORNER_LINKS = ('<div class="fc-corner"><a href="/">fluxcore.party</a>'
                 '<a class="fc-primary" href="/docs/">Docs &amp; what\'s different</a></div>')
 
 # FluxCore logo, in place of the MeshCore logo image in the flasher's header
-LOGO_OLD = '<img :src="`/img/${logoFile}`" v-if="!isIframe"> <span>flasher</span>'
-LOGO_NEW = ('<span class="fc-logo"><a href="https://fluxcore.party/">fluxcore<span class="fc-cursor"></span></a>'
+LOGO_OLD = '<img :src="`/flash/img/${logoFile}`" v-if="!isIframe"> <span>flasher</span>'
+LOGO_NEW = ('<span class="fc-logo"><a href="/">fluxcore<span class="fc-cursor"></span></a>'
             '<span class="fc-sub">flasher</span></span>')
 
 
 def theme(page):
     """Restyles the flasher page to match fluxcore.party (flasher/theme/fluxcore.css)."""
     for old, new in [
-        ('<link href="/css/flasher.css" rel="stylesheet">',
-         '<link href="/css/flasher.css" rel="stylesheet">\n  <link href="/css/fluxcore.css" rel="stylesheet">'),
+        ('<link href="/flash/css/flasher.css" rel="stylesheet">',
+         '<link href="/flash/css/flasher.css" rel="stylesheet">\n  <link href="/flash/css/fluxcore.css" rel="stylesheet">'),
         ('<body class="dark">', '<body class="light fluxcore">'),
         (LOGO_OLD, LOGO_NEW),
     ]:
@@ -83,6 +87,44 @@ def theme(page):
             print(f"WARNING: flasher page changed, theme step skipped: {old}")
         page = page.replace(old, new, 1)
     return page.replace("</body>", CORNER_LINKS + "</body>", 1)
+
+
+BASE = "/flash"   # where the flasher lives on the site
+BASE_RE = BASE.replace("/", "\\/")   # BASE inside a JavaScript regex literal
+
+# The flasher is written to sit at the site root. These move it under BASE: the paths of its own
+# files, and its router, which keeps the selection in the URL path (/device/role/version).
+ROOT_PATH = re.compile(r"""(['"`])/(lib/|js/|css/|img/|flasher\.js|releases|\$\{configName\}\.json)""")
+ROUTER_PATCHES = [
+    ("export const CONSOLE_PATH = '/console';", f"export const CONSOLE_PATH = '{BASE}/console';"),
+    ("  if(!device) return '/';\n  let path = `/",
+     f"  if(!device) return '{BASE}/';\n  let path = `{BASE}/"),
+    ("export function parsePath(config, path) {",
+     f"export function parsePath(config, path) {{\n  path = path.replace(/^{BASE_RE}/, '');"),
+    ("export function isSamePage(pathA, pathB) {",
+     f"export function isSamePage(pathA, pathB) {{\n  pathA = pathA.replace(/^{BASE_RE}/, '');"
+     f"\n  pathB = pathB.replace(/^{BASE_RE}/, '');"),
+]
+APP_PATCHES = [
+    ("if(currentVersion.value?.customFile) return '/';", f"if(currentVersion.value?.customFile) return '{BASE}/';"),
+]
+
+
+def patch(path, patches):
+    code = path.read_text()
+    for old, new in patches:
+        if old not in code:
+            sys.exit(f"Flasher changed, can't move it under {BASE}: {path.name} has no {old!r}")
+        code = code.replace(old, new, 1)
+    path.write_text(code)
+
+
+def move_under_base(flasher):
+    """Rewrites the flasher's root-relative paths to BASE."""
+    for f in [flasher / "index.html", flasher / "flasher.js", *(flasher / "js").glob("*.js")]:
+        f.write_text(ROOT_PATH.sub(lambda m: f"{m.group(1)}{BASE}/{m.group(2)}", f.read_text()))
+    patch(flasher / "js" / "router.js", ROUTER_PATCHES)
+    patch(flasher / "js" / "app.js", APP_PATCHES)
 
 
 def latest_build_html(release):
@@ -121,19 +163,22 @@ def release_source_key(firmware):
 
 def main(flasher_dir, out_dir):
     settings = json.loads((HERE / "settings.json").read_text())
-    flasher_dir, out = Path(flasher_dir), Path(out_dir)
+    flasher_dir, site = Path(flasher_dir), Path(out_dir)
+    out = site / BASE.strip("/")
 
-    # 1. The flasher itself
-    if out.exists():
-        shutil.rmtree(out)
+    # 1. Landing page, and the flasher itself
+    if site.exists():
+        shutil.rmtree(site)
+    shutil.copytree(HERE.parent / "landing", site)
     shutil.copytree(flasher_dir, out, ignore=shutil.ignore_patterns(".git", ".github"))
+    move_under_base(out)
     index = out / "index.html"
     page = re.sub(r"<title>.*?</title>", f"<title>{settings['title']}</title>", index.read_text(), count=1)
     page = theme(page)
     index.write_text(page)
     shutil.copy(HERE / "theme" / "fluxcore.css", out / "css" / "fluxcore.css")
-    # The flasher keeps its state in the URL path (/device/role/version). There are no files at those
-    # paths: Cloudflare serves index.html for them (not_found_handling in flasher/wrangler.jsonc).
+    # The flasher keeps its state in the URL path (/flash/device/role/version). There are no files at
+    # those paths: worker.js serves /flash/index.html for them.
     # The release list and catalog are fetched by script, and a host may let browsers cache them for
     # minutes (a hard refresh doesn't cover script fetches). Revalidate every time instead: the
     # browser keeps its copy and only re-downloads when the file changed.
@@ -154,8 +199,11 @@ def main(flasher_dir, out_dir):
     for name in settings["devices"]:
         device = by_name[name]
         device["firmware"] = [fw for fw in device["firmware"] if release_source_key(fw)]
+        if device.get("icon", "").startswith("/"):
+            device["icon"] = BASE + device["icon"]
         devices.append(device)
     config["device"] = devices
+    config["staticPath"] = BASE + config["staticPath"]   # erase images and bootloaders, under /flash/firmware
     (out / "config.json").write_text(json.dumps(config, indent=1))
 
     patterns = [re.compile(p) for d in devices for fw in d["firmware"]
@@ -197,7 +245,7 @@ def main(flasher_dir, out_dir):
             dest = out / "fw" / tag / asset["name"]
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(fetch(asset["browser_download_url"]))
-            files.append({"name": asset["name"], "url": f"/fw/{tag}/{asset['name']}"})
+            files.append({"name": asset["name"], "url": f"{BASE}/fw/{tag}/{asset['name']}"})
         print(f"release  {tag}: {len(files)} files")
         # The flasher shows notes as plain text with URLs auto-linked, so flatten Markdown links
         notes = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", r"\1: \2", r["body"] or "")
@@ -210,7 +258,7 @@ def main(flasher_dir, out_dir):
     (out / "releases").write_text(json.dumps(catalog))
 
     # 5. Docs page
-    docs = out / "docs"
+    docs = site / "docs"
     shutil.copytree(HERE / "docs", docs)
     page = (docs / "index.html").read_text()
     (docs / "index.html").write_text(page.replace("<!--LATEST-->", latest_build_html(releases[0])))
