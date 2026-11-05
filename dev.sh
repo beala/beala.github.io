@@ -24,7 +24,9 @@ ln -sf "$PWD/landing/index.html" _site/index.html
 ln -sf "$PWD/flasher/docs/index.html" _site/docs/index.html
 ln -sf "$PWD/flasher/theme/fluxcore.css" _site/flash/css/fluxcore.css
 
-npx -y wrangler@4 dev --port 8787 --var PREVIEW:1 --var "FIRMWARE_REPO:$(jq -r .firmware_repo flasher/settings.json)" &
-trap 'kill $! 2>/dev/null' EXIT
-npx -y browser-sync@3 start --proxy localhost:8787 --port 3000 --no-open --no-notify --no-ui \
+# wrangler serves the site on 8787 (no auto-reload); browser-sync on 3000 adds the reloading
+npx -y wrangler@4 dev --port 8787 --log-level warn --var PREVIEW:1 --var "FIRMWARE_REPO:$(jq -r .firmware_repo flasher/settings.json)" &
+trap 'kill 0' EXIT  # on Ctrl+C, stop wrangler too so port 8787 is free next time
+echo; echo "  Preview: http://localhost:3000  (reloads when you save)"; echo
+npx -y browser-sync@3 start --logLevel silent --proxy localhost:8787 --port 3000 --no-open --no-notify --no-ui \
   --files landing flasher/docs flasher/theme
