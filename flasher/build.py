@@ -201,6 +201,8 @@ def main(flasher_dir, out_dir):
         device["firmware"] = [fw for fw in device["firmware"] if release_source_key(fw)]
         if device.get("icon", "").startswith("/"):
             device["icon"] = BASE + device["icon"]
+        if "tooltip" in device:   # the board picture shown on hover: <img src='/img/...'>
+            device["tooltip"] = re.sub(r"""(src=['"])/(?!/)""", rf"\1{BASE}/", device["tooltip"])
         devices.append(device)
     config["device"] = devices
     config["staticPath"] = BASE + config["staticPath"]   # erase images and bootloaders, under /flash/firmware
