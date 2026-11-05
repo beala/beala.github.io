@@ -12,7 +12,7 @@ on:
     - cron: '*/15 * * * *'  # look for a new firmware release every 15 minutes
   workflow_dispatch:
   push:
-    branches: [master]
+    branches: [main]
     paths: ['flasher/**', 'landing/**', 'worker.js', 'wrangler.jsonc', '.github/workflows/flasher.yml']
 
 permissions:
