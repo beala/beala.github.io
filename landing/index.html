@@ -38,6 +38,8 @@ h2{font-size:15px;font-weight:700;line-height:1.5;margin:0 0 25px;color:var(--hi
 .closing p{margin:0 0 15px;color:var(--hi)}
 footer{border-top:1px dashed var(--line);padding:19px 0 34px;margin-top:42px;display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--sub)}
 footer a{text-decoration:none;color:var(--sub)}
+footer{flex-wrap:wrap;row-gap:6px}
+.credit{flex-basis:100%}
 .slash{color:var(--acid);margin-right:10px}
 @media(max-width:600px){nav{padding:23px 24px;justify-content:flex-start;gap:22px;font-size:12px}main{margin-top:36px;width:calc(100% - 48px)}h1{font-size:58px;letter-spacing:-3px}.intro{font-size:19px}body{font-size:15px}.section{margin-top:35px}.jump{gap:20px;font-size:13px}footer{flex-direction:column;gap:5px}.status{font-size:11px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cursor{animation:none}}
@@ -59,5 +61,5 @@ footer a{text-decoration:none;color:var(--sub)}
 <p class="note">Also: packet parser fixes, improved key generation, radio diagnostics, and opt-in experimental encryption. <a href="/docs/#differences">All the changes.</a></p>
 </section>
 <div class="closing"><p>Got an idea? Found something broken?</p><a href="https://github.com/beala/MeshCore">The code is here. ↗</a></div>
-<footer><span>fluxcore / independent MeshCore fork</span><a href="/docs/">Documentation</a></footer>
+<footer><span>fluxcore / independent MeshCore fork</span><a href="/docs/">Documentation</a><span class="credit">A project from AB Labs LLC and Unmatched Designs</span></footer>
 </main></body></html>
