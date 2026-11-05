@@ -95,72 +95,13 @@
 
   <h2 id="differences">What's different from mainline firmware<a class="anchor" href="#differences" aria-label="Copy link to this section">#</a></h2>
 
-  <h3 id="all-boards">All boards<a class="anchor" href="#all-boards" aria-label="Copy link to this section">#</a></h3>
-  <p><strong>Safer randomness for new keys.</strong> A radio now only keeps a new private key if it gathered enough
-    randomness from sources it can trust, and the Heltec V3 and V4 use their chip's random generator properly
-    (see <a href="#key-randomness">below</a>).
-    <span class="branch">beala/entropy</span></p>
-
-  <p><strong>INA219 shunt setting.</strong> The INA219 current sensor's readings assumed a 0.1&nbsp;ohm shunt resistor.
-    Set yours with <code>sensor set ina219_shunt &lt;ohms&gt;</code> (for example <code>0.01</code> for a board marked R010).
-    It's saved and survives a reboot. <code>sensor get ina219_shunt</code> shows it; it only appears in
-    <code>sensor list</code> if an INA219 was found at boot. The most it can measure is 0.32&nbsp;V divided by the shunt:
-    3.2&nbsp;A with 0.1&nbsp;ohm, 32&nbsp;A with 0.01&nbsp;ohm.
-    <span class="branch">beala/ina219-shunt</span></p>
-
-  <p><strong>Resend messages that don't get out.</strong> After sending a message, the radio listens for the next
-    repeater passing it on. If it hears none, it sends the exact same packet once more. Radios that already have it
-    ignore the copy, so nobody sees it twice. Works for channel messages and for direct messages along a path.
-    On by default on companions, off by default on repeaters (see <a href="#flood-retry">below</a>).
-    <span class="branch">beala/flood-retry</span></p>
-
-  <p><strong>Several companions with one key.</strong> Pick one radio as the main radio; the others with the same
-    key still show the messages they hear but never answer them, so senders get one reply and one path, and
-    "delivered" means the main radio has it. A <em>Radio console</em> contact in the app runs radio commands and tells you when another radio with
-    your key is heard (see <a href="#clone-takeover">below</a>).
-    <span class="branch">beala/main</span></p>
-
-  <p><strong>Commands in a chat.</strong> Type <code>/range</code>, <code>/crypto v2</code> or <code>/path</code>
-    in a DM, or <code>/crypto</code> in a channel, and the radio runs it for that chat instead of sending it. The
-    reply shows in the same chat (see <a href="#chat-commands">below</a>).
-    <span class="branch">beala/main</span></p>
-
-  <p><strong>Packet parser security fixes.</strong> Neil Alexander's fixes from
-    <a href="https://github.com/meshcore-dev/MeshCore/pull/3521">meshcore-dev/MeshCore#3521</a>, not yet merged upstream.
-    Malformed or truncated packets from the air could make the firmware read past the end of buffers or use stale memory;
-    the parser now rejects them. Covers empty and short frames, partial encrypted payloads, oversized advert data,
-    bad TRACE and CONTROL packets, and ACK overflows. One addition on top: packets with a newer, unsupported protocol
-    version are dropped instead of being handled as version 1.
-    <span class="branch">beala/pr-3521</span></p>
-
-  <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
-  <p><strong>Buzzer, vibration and LED switches.</strong> Commands to turn the buzzer, the vibration motor and the LEDs
-    on and off, each on its own (see <a href="#alerts">below</a>). Mainline only has a buzzer command, and the X1's
-    button cycles buzzer and vibration together.
-    <span class="branch">beala/alert-toggles</span></p>
-
-  <p><strong>Stronger encryption (experimental, opt-in).</strong> A new encryption format that fixes real weaknesses in
-    the current one, and works alongside radios that don't have it (see <a href="#encryption">below</a>).
-    <span class="branch">beala/crypto-v2</span></p>
-
-  <p><strong>Find a lost radio.</strong> Make a radio beep for a couple of minutes, from itself or from
-    another radio you've allowed, and measure the distance between two LR2021 radios such as X1s (see <a href="#find-me">below</a>).
-    <span class="branch">beala/find-me</span></p>
-
-  <h3 id="stay-off-when-charging">T1, X1, WisMesh Tag and T1000-E<a class="anchor" href="#stay-off-when-charging" aria-label="Copy link to this section">#</a></h3>
-  <p><strong>Stay off when plugged in.</strong> On mainline, plugging a switched-off node into a charger turns it on.
-    These builds stay off and just charge; press the button to turn on. Change it with
-    <code>set charger.wake on|off</code>. A node that switched itself off for low battery still comes back when charged.
-    <span class="branch">beala/charger-stay-off, beala/custom-defaults</span></p>
-
-  <h3 id="t1-t1000e-defaults">Heltec T1 and T1000-E<a class="anchor" href="#t1-t1000e-defaults" aria-label="Copy link to this section">#</a></h3>
-  <p><strong>Buzzer starts off</strong> on both, and the <strong>status LED starts off</strong> on the T1000-E.
-    Turn them back on with <code>set buzzer on</code> / <code>set led on</code>.
-    <span class="branch">beala/custom</span></p>
-
   <h3 id="x1-radio">MeshTracker X1 (LR2021 radio)<a class="anchor" href="#x1-radio" aria-label="Copy link to this section">#</a></h3>
   <p>These change the LR2021 driver, so they only affect the X1 on this site.</p>
   <ul>
+    <li><strong>Meshtastic channel.</strong> With <code>mt on</code>, the radio also listens to Meshtastic LongFast and
+      shows its texts in the app as one more channel. Receive only; the radio chip hops between the two networks by
+      itself (see <a href="#meshtastic">below</a>).
+      <span class="branch">beala/main</span></li>
     <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
       This uses Semtech's reference table, so settings up to 22 dBm give the power they say.
       <span class="branch">beala/fix-lr2021-pa-table</span></li>
@@ -175,11 +116,70 @@
       <span class="branch">beala/lr2021-simo-flag, beala/x1-simo</span></li>
     <li><strong>Radio diagnostics.</strong> The two commands below, plus transmit fault logging in debug builds.
       <span class="branch">beala/lr2021-tx-fault-log, beala/lr2021-rx-gain-step, beala/lr2021-diagnostics</span></li>
-    <li><strong>Meshtastic channel.</strong> With <code>mt on</code>, the radio also listens to Meshtastic LongFast and
-      shows its texts in the app as one more channel. Receive only; the radio chip hops between the two networks by
-      itself (see <a href="#meshtastic">below</a>).
-      <span class="branch">beala/main</span></li>
   </ul>
+
+  <h3 id="all-boards">All boards<a class="anchor" href="#all-boards" aria-label="Copy link to this section">#</a></h3>
+  <p><strong>Several companions with one key.</strong> Pick one radio as the main radio; the others with the same
+    key still show the messages they hear but never answer them, so senders get one reply and one path, and
+    "delivered" means the main radio has it. A <em>Radio console</em> contact in the app runs radio commands and tells you when another radio with
+    your key is heard (see <a href="#clone-takeover">below</a>).
+    <span class="branch">beala/main</span></p>
+
+  <p><strong>Resend messages that don't get out.</strong> After sending a message, the radio listens for the next
+    repeater passing it on. If it hears none, it sends the exact same packet once more. Radios that already have it
+    ignore the copy, so nobody sees it twice. Works for channel messages and for direct messages along a path.
+    On by default on companions, off by default on repeaters (see <a href="#flood-retry">below</a>).
+    <span class="branch">beala/flood-retry</span></p>
+
+  <p><strong>Commands in a chat.</strong> Type <code>/range</code>, <code>/crypto v2</code> or <code>/path</code>
+    in a DM, or <code>/crypto</code> in a channel, and the radio runs it for that chat instead of sending it. The
+    reply shows in the same chat (see <a href="#chat-commands">below</a>).
+    <span class="branch">beala/main</span></p>
+
+  <p><strong>INA219 shunt setting.</strong> The INA219 current sensor's readings assumed a 0.1&nbsp;ohm shunt resistor.
+    Set yours with <code>sensor set ina219_shunt &lt;ohms&gt;</code> (for example <code>0.01</code> for a board marked R010).
+    It's saved and survives a reboot. <code>sensor get ina219_shunt</code> shows it; it only appears in
+    <code>sensor list</code> if an INA219 was found at boot. The most it can measure is 0.32&nbsp;V divided by the shunt:
+    3.2&nbsp;A with 0.1&nbsp;ohm, 32&nbsp;A with 0.01&nbsp;ohm.
+    <span class="branch">beala/ina219-shunt</span></p>
+
+  <p><strong>Safer randomness for new keys.</strong> A radio now only keeps a new private key if it gathered enough
+    randomness from sources it can trust, and the Heltec V3 and V4 use their chip's random generator properly
+    (see <a href="#key-randomness">below</a>).
+    <span class="branch">beala/entropy</span></p>
+
+  <p><strong>Packet parser security fixes.</strong> Neil Alexander's fixes from
+    <a href="https://github.com/meshcore-dev/MeshCore/pull/3521">meshcore-dev/MeshCore#3521</a>, not yet merged upstream.
+    Malformed or truncated packets from the air could make the firmware read past the end of buffers or use stale memory;
+    the parser now rejects them. Covers empty and short frames, partial encrypted payloads, oversized advert data,
+    bad TRACE and CONTROL packets, and ACK overflows. One addition on top: packets with a newer, unsupported protocol
+    version are dropped instead of being handled as version 1.
+    <span class="branch">beala/pr-3521</span></p>
+
+  <h3 id="alert-switches">Companion boards<a class="anchor" href="#alert-switches" aria-label="Copy link to this section">#</a></h3>
+  <p><strong>Find a lost radio.</strong> Make a radio beep for a couple of minutes, from itself or from
+    another radio you've allowed, and measure the distance between two LR2021 radios such as X1s (see <a href="#find-me">below</a>).
+    <span class="branch">beala/find-me</span></p>
+
+  <p><strong>Buzzer, vibration and LED switches.</strong> Commands to turn the buzzer, the vibration motor and the LEDs
+    on and off, each on its own (see <a href="#alerts">below</a>). Mainline only has a buzzer command, and the X1's
+    button cycles buzzer and vibration together.
+    <span class="branch">beala/alert-toggles</span></p>
+
+  <p><strong>Stronger encryption (experimental, opt-in).</strong> A new encryption format that fixes real weaknesses in
+    the current one, and works alongside radios that don't have it (see <a href="#encryption">below</a>).
+    <span class="branch">beala/crypto-v2</span></p>
+
+  <h3 id="stay-off-when-charging">T1, X1, WisMesh Tag and T1000-E<a class="anchor" href="#stay-off-when-charging" aria-label="Copy link to this section">#</a></h3>
+  <p><strong>Stay off when plugged in.</strong> On mainline, plugging a switched-off node into a charger turns it on.
+    These builds stay off and just charge; press the button to turn on. Change it with
+    <code>set charger.wake on|off</code>. A node that switched itself off for low battery still comes back when charged.
+    <span class="branch">beala/charger-stay-off, beala/custom-defaults</span></p>
+
+  <h3 id="t1-t1000e-defaults">Heltec T1 and T1000-E<a class="anchor" href="#t1-t1000e-defaults" aria-label="Copy link to this section">#</a></h3>
+  <p><strong>Buzzer starts off</strong> on both, and the <strong>status LED starts off</strong> on the T1000-E.
+    Turn them back on with <code>set buzzer on</code> / <code>set led on</code>.
+    <span class="branch">beala/custom</span></p>
 
   <h2 id="alerts">Buzzer, vibration, LED and charging commands<a class="anchor" href="#alerts" aria-label="Copy link to this section">#</a></h2>
   <p>Send these from the companion app's command line. Each takes effect immediately and is saved. A board without
