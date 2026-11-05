@@ -5,7 +5,42 @@
 <title>FluxCore — Firmware in flux, compatible with MeshCore</title>
 <meta name="description" content="A MeshCore fork for trying things. Fast iteration, useful fixes, and experiments on the existing mesh.">
 <style>
-:root{color-scheme:light;--bg:#f7f8f3;--fg:#182018;--sub:#626b5e;--line:#cbd1c5;--acid:#c0ff58;--green:#3d642b}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.65 Arial,Helvetica,sans-serif}::selection{background:var(--acid);color:#17200f}a{color:inherit;text-decoration-thickness:1px;text-underline-offset:4px}a:hover{background:var(--acid);color:#17200f}a:focus-visible{outline:2px solid var(--green);outline-offset:5px}.mono,nav,h1,h2,footer,.status,.jump{font-family:'Courier New',Courier,monospace}nav{max-width:1140px;margin:0 auto;padding:28px 32px;display:flex;justify-content:flex-end;gap:25px;font-size:13px}nav a{text-decoration:none}main{width:min(100% - 48px,680px);margin:52px auto 0}header{margin-bottom:45px}h1{font-size:clamp(55px,10vw,88px);font-weight:400;letter-spacing:-7px;line-height:1.05;margin:0 0 22px}.cursor{display:inline-block;background:var(--acid);width:.19em;height:.76em;margin-left:.09em;vertical-align:-.03em}.status{color:var(--sub);font-size:11px;letter-spacing:.6px;display:flex;align-items:center;gap:10px}.signal{width:6px;height:6px;background:var(--green);display:inline-block}.intro{font-size:23px;line-height:1.48;letter-spacing:-.3px;margin:0 0 26px;max-width:640px}p{margin:0 0 22px}h2{font-size:16px;font-weight:bold;line-height:1.5;letter-spacing:-.4px;margin:0 0 25px}.jump{display:flex;gap:25px;flex-wrap:wrap;margin:32px 0 0;font-size:14px}.jump a{white-space:nowrap}.primary{background:var(--acid);padding:2px 6px;margin-left:-6px}.section{border-top:1px solid var(--line);padding-top:30px;margin-top:47px}.feature{font-size:16px;line-height:1.7}.feature strong{font-weight:600}.feature p{margin-bottom:23px}.feature a{color:var(--green);font-size:14px;white-space:nowrap}.note{font-size:14px;color:var(--sub);line-height:1.7}.closing{margin:42px 0 48px;font-size:18px}.closing p{margin:0 0 15px}footer{border-top:1px solid var(--line);padding:19px 0 34px;margin-top:42px;display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--sub)}footer a{text-decoration:none}.slash{color:var(--green);margin-right:10px}@media(max-width:600px){nav{padding:23px 24px;justify-content:flex-start;gap:22px;font-size:12px}main{margin-top:36px;width:calc(100% - 48px)}h1{font-size:64px;letter-spacing:-5px}.intro{font-size:21px}body{font-size:17px}.section{margin-top:35px}.jump{gap:20px;font-size:13px}footer{flex-direction:column;gap:5px}.status{font-size:10px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+:root{color-scheme:dark;--bg:#050805;--fg:#b4eeac;--hi:#e0ffda;--sub:#6b9a64;--line:#1c331b;--acid:#3dff6e;--ink:#031003;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono','Courier New',monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse 80% 50% at 50% 0,#0c1d0c,transparent) var(--bg) no-repeat;color:var(--fg);font:16px/1.75 var(--mono)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:10;background:repeating-linear-gradient(0deg,rgb(0 0 0/.22) 0 1px,transparent 1px 3px)}
+::selection{background:var(--acid);color:var(--ink)}
+a{color:var(--acid);text-decoration-thickness:1px;text-underline-offset:4px}
+a:hover{background:var(--acid);color:var(--ink);text-decoration:none}
+a:focus-visible{outline:1px solid var(--acid);outline-offset:4px}
+nav{max-width:1140px;margin:0 auto;padding:28px 32px;display:flex;justify-content:flex-end;gap:25px;font-size:13px}
+nav a{text-decoration:none;color:var(--sub)}
+main{width:min(100% - 48px,680px);margin:52px auto 0}
+header{margin-bottom:45px}
+h1{font-size:clamp(52px,10vw,84px);font-weight:400;letter-spacing:-4px;line-height:1.05;margin:0 0 22px;color:var(--acid);text-shadow:0 0 18px rgb(61 255 110/.45)}
+.cursor{display:inline-block;background:var(--acid);width:.5em;height:.8em;margin-left:.08em;vertical-align:-.04em;box-shadow:0 0 14px rgb(61 255 110/.7);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.status{color:var(--sub);font-size:12px;letter-spacing:2px;display:flex;align-items:center;gap:10px}
+.signal{width:7px;height:7px;background:var(--acid);box-shadow:0 0 8px var(--acid);display:inline-block}
+.intro{font-size:22px;line-height:1.5;margin:0 0 26px;color:var(--hi)}
+p{margin:0 0 22px}
+h2{font-size:15px;font-weight:700;line-height:1.5;margin:0 0 25px;color:var(--hi);letter-spacing:1px;text-transform:uppercase}
+.jump{display:flex;gap:25px;flex-wrap:wrap;margin:32px 0 0;font-size:14px;align-items:center}
+.jump a{white-space:nowrap}
+.primary{border:1px solid var(--acid);padding:4px 12px;text-decoration:none;box-shadow:0 0 12px rgb(61 255 110/.2)}
+.section{border-top:1px dashed var(--line);padding-top:30px;margin-top:47px}
+.feature{font-size:15px;line-height:1.75}
+.feature strong{font-weight:700;color:var(--hi)}
+.feature p{margin-bottom:23px}
+.feature a{font-size:13px;white-space:nowrap}
+.note{font-size:13px;color:var(--sub);line-height:1.7}
+.closing{margin:42px 0 48px;font-size:16px}
+.closing p{margin:0 0 15px;color:var(--hi)}
+footer{border-top:1px dashed var(--line);padding:19px 0 34px;margin-top:42px;display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--sub)}
+footer a{text-decoration:none;color:var(--sub)}
+.slash{color:var(--acid);margin-right:10px}
+@media(max-width:600px){nav{padding:23px 24px;justify-content:flex-start;gap:22px;font-size:12px}main{margin-top:36px;width:calc(100% - 48px)}h1{font-size:58px;letter-spacing:-3px}.intro{font-size:19px}body{font-size:15px}.section{margin-top:35px}.jump{gap:20px;font-size:13px}footer{flex-direction:column;gap:5px}.status{font-size:11px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cursor{animation:none}}
 </style>
 </head><body>
 <nav aria-label="Main navigation"><a href="/flash/">Flasher</a><a href="/docs/">Docs</a><a href="https://github.com/beala/MeshCore">Source ↗</a></nav>

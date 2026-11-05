@@ -1,101 +1,108 @@
 /* FluxCore theme for the MeshCore web flasher, matching fluxcore.party.
-   build.py adds this after the flasher's own CSS and sets <body class="light fluxcore">,
-   so these override BeerCSS's light theme colors. */
+   build.py adds this after the flasher's own CSS and sets <body class="dark fluxcore">,
+   so these override BeerCSS's dark theme colors. */
 body.fluxcore {
-  --bg: #f7f8f3; --fg: #182018; --sub: #626b5e; --line: #cbd1c5; --acid: #c0ff58; --green: #3d642b;
-  --mono: 'Courier New', Courier, monospace;
-  --font: Arial, Helvetica, sans-serif;
-  --primary: var(--green);
-  --on-primary: #ffffff;
-  --primary-container: var(--acid);
-  --on-primary-container: #17200f;
-  --secondary: #4f5a4a;
-  --on-secondary: #ffffff;
-  --secondary-container: #e3e8d9;
-  --on-secondary-container: #182018;
-  --tertiary: var(--green);
-  --on-tertiary: #ffffff;
-  --tertiary-container: var(--acid);
-  --on-tertiary-container: #17200f;
+  --bg: #050805; --fg: #b4eeac; --hi: #e0ffda; --sub: #6b9a64; --line: #1c331b; --acid: #3dff6e; --ink: #031003;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font: var(--mono);
+  --primary: var(--acid);
+  --on-primary: var(--ink);
+  --primary-container: #0f2a12;
+  --on-primary-container: var(--acid);
+  --secondary: var(--sub);
+  --on-secondary: var(--ink);
+  --secondary-container: #0f1f0f;
+  --on-secondary-container: var(--fg);
+  --tertiary: var(--acid);
+  --on-tertiary: var(--ink);
+  --tertiary-container: #0f2a12;
+  --on-tertiary-container: var(--acid);
   --background: var(--bg);
   --on-background: var(--fg);
   --surface: var(--bg);
   --on-surface: var(--fg);
-  --surface-variant: #e6e9df;
+  --surface-variant: #0b160b;
   --on-surface-variant: var(--sub);
-  --outline: #8f9888;
+  --outline: #2f5a2c;
   --outline-variant: var(--line);
   --inverse-surface: var(--fg);
   --inverse-on-surface: var(--bg);
-  --inverse-primary: var(--acid);
-  --surface-dim: #e9ece3;
-  --surface-bright: #ffffff;
-  --surface-container-lowest: #ffffff;
-  --surface-container-low: #f1f3ec;
-  --surface-container: #ebeee5;
-  --surface-container-high: #e5e9de;
-  --surface-container-highest: #dfe3d7;
-  --active: rgb(61 100 43 / .14);
-  background: var(--bg);
+  --inverse-primary: var(--ink);
+  --surface-dim: #050805;
+  --surface-bright: #142414;
+  --surface-container-lowest: #040604;
+  --surface-container-low: #081008;
+  --surface-container: #0b160b;
+  --surface-container-high: #0f1d0f;
+  --surface-container-highest: #132413;
+  --active: rgb(61 255 110 / .12);
+  background: radial-gradient(ellipse 80% 600px at 50% 0, #0c1d0c, transparent) var(--bg) no-repeat;
   color: var(--fg);
+  font-family: var(--mono);
 }
-body.fluxcore ::selection { background: var(--acid); color: #17200f; }
+html:has(body.fluxcore) { background: #050805; }
+/* Faint scanlines */
+body.fluxcore::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 10000;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / .22) 0 1px, transparent 1px 3px); }
+body.fluxcore ::selection { background: var(--acid); color: var(--ink); }
 
 /* Same column as the landing page, a bit wider for the device list */
 body.fluxcore #app { max-width: 760px; margin: 0 auto; padding: 0 24px; }
 
-/* Square corners and flat surfaces, like the landing page */
+/* Square corners and flat surfaces */
 body.fluxcore #app :is(button, .button, article, .field, .field > :is(input, select, textarea), .list, menu, .snackbar, .tooltip, .chip) {
   border-radius: 0;
 }
-body.fluxcore #app article { box-shadow: none; border: 1px solid var(--line); }
+body.fluxcore #app article { box-shadow: none; border: 1px solid var(--line); background: var(--surface-container-low); }
 body.fluxcore #app .list.border { border-color: var(--line); }
 body.fluxcore #app .list > li { border-color: var(--line); }
-
-/* Monospace for headings, navigation and buttons */
-body.fluxcore #app :is(h5, h6, nav, button, .chip, label, .tooltip) { font-family: var(--mono); }
-body.fluxcore #app h6.small { font-size: 1rem; font-weight: bold; letter-spacing: -.4px; }
-body.fluxcore #app h6.small::before { content: "/"; color: var(--green); margin-right: 10px; }
+body.fluxcore #app :is(h5, h6, nav, button, .chip, label, .tooltip, input, select, textarea) { font-family: var(--mono); }
+body.fluxcore #app :is(h5, h6) { color: var(--hi); }
+body.fluxcore #app h6.small { font-size: .95rem; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+body.fluxcore #app h6.small::before { content: "/"; color: var(--acid); margin-right: 10px; }
 
 /* Logo: "fluxcore▮ flasher" */
 body.fluxcore #app .fc-logo { display: flex; align-items: baseline; gap: 14px; font-family: var(--mono); font-style: normal; }
-body.fluxcore #app .fc-logo a { text-decoration: none; color: inherit; background: none; font-size: 2rem; letter-spacing: -2px; font-weight: 400; }
-body.fluxcore #app .fc-logo a:hover { background: var(--acid); }
-body.fluxcore #app .fc-cursor { display: inline-block; background: var(--acid); width: .19em; height: .76em; margin-left: .09em; vertical-align: -.03em; }
-body.fluxcore #app .fc-logo .fc-sub { color: var(--sub); font-size: .75rem; letter-spacing: .6px; text-transform: uppercase; font-weight: 400; }
+body.fluxcore #app .fc-logo a { text-decoration: none; color: var(--acid); background: none; font-size: 2rem; letter-spacing: -1px; font-weight: 400;
+  text-shadow: 0 0 14px rgb(61 255 110 / .45); }
+body.fluxcore #app .fc-logo a:hover { background: var(--acid); color: var(--ink); text-shadow: none; }
+body.fluxcore #app .fc-cursor { display: inline-block; background: var(--acid); width: .5em; height: .8em; margin-left: .08em; vertical-align: -.04em;
+  box-shadow: 0 0 12px rgb(61 255 110 / .7); animation: fc-blink 1.1s steps(1) infinite; }
+@keyframes fc-blink { 50% { opacity: 0; } }
+body.fluxcore #app .fc-logo .fc-sub { color: var(--sub); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 400; font-style: normal; }
 body.fluxcore #app header nav.top-nav > i:first-child { display: none; }
+body.fluxcore #app header { background: transparent; }
 
-/* Links: underline, acid highlight on hover */
-body.fluxcore #app a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-body.fluxcore #app a:hover { background: var(--acid); color: #17200f; }
+/* Links: green, inverse on hover */
+body.fluxcore #app a { color: var(--acid); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+body.fluxcore #app a:hover { background: var(--acid); color: var(--ink); text-decoration: none; }
 
-/* Filled buttons: acid with dark text; outlined and flat ones stay quiet */
-body.fluxcore #app button:not(.transparent, .border, .circle) { background: var(--acid); color: #17200f; }
+/* Filled buttons: green outline, inverse on hover; outlined and flat ones stay quiet */
+body.fluxcore #app button:not(.transparent, .border, .circle) { background: transparent; color: var(--acid); border: 1px solid var(--acid);
+  box-shadow: 0 0 12px rgb(61 255 110 / .2); }
+body.fluxcore #app button:not(.transparent, .border, .circle):hover { background: var(--acid); color: var(--ink); }
 body.fluxcore #app button.border { border-color: var(--line); color: var(--fg); }
-body.fluxcore #app button.error.border { color: var(--sub); }
 body.fluxcore #app .welcome-banner { border: 0; }
 
-/* The page loader was a light grey ring, invisible on a light page */
-body.fluxcore:has([v-cloak]):after { border-color: var(--green); }
+/* Donate (to the flasher's author) stays, but quiet instead of solid red */
+body.fluxcore #app button.error { background: transparent !important; color: var(--fg) !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
+body.fluxcore #app button.error:hover { background: var(--acid) !important; color: var(--ink) !important; }
+
+/* Page loader */
+body.fluxcore:has([v-cloak]):after { border-color: var(--acid); }
 
 /* Docs and home links, pinned to a corner */
-.fc-corner { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: flex; gap: 8px; font: 13px 'Courier New', Courier, monospace; }
-.fc-corner a { padding: 6px 10px; background: #182018; color: #f7f8f3; text-decoration: none; }
-.fc-corner a.fc-primary { background: #c0ff58; color: #17200f; }
-.fc-corner a:hover { outline: 2px solid #3d642b; outline-offset: 2px; }
+.fc-corner { position: fixed; right: 16px; bottom: 16px; z-index: 9999; display: flex; gap: 8px;
+  font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; }
+.fc-corner a { padding: 6px 10px; background: #050805; color: #6b9a64; border: 1px solid #1c331b; text-decoration: none; }
+.fc-corner a.fc-primary { color: #3dff6e; border-color: #3dff6e; }
+.fc-corner a:hover { background: #3dff6e; color: #031003; }
 
-/* No tinted band behind the header */
-body.fluxcore #app header { background: transparent; }
-body.fluxcore #app .fc-logo .fc-sub { font-style: normal; }
-
-/* Donate (to the flasher's author) stays, but outlined instead of solid red */
-body.fluxcore #app button.error { background: transparent !important; color: var(--fg) !important; border: 1px solid var(--line); }
-body.fluxcore #app button.error:hover { background: var(--acid) !important; color: #17200f !important; }
-
-/* The LoRa badges are white, drawn for a dark page */
-body.fluxcore #app .list img.icon.hide-mobile { filter: invert(1) brightness(.35); }
+/* Tint the vendor logos and LoRa badges phosphor green */
+body.fluxcore #app .list img { filter: grayscale(1) sepia(1) hue-rotate(65deg) saturate(4) brightness(1.1); }
 
 @media screen and (width <= 540px) {
   body.fluxcore #app { padding: 0 12px; }
   body.fluxcore #app .fc-logo a { font-size: 1.6rem; }
 }
+@media (prefers-reduced-motion: reduce) { body.fluxcore #app .fc-cursor { animation: none; } }

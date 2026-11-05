@@ -80,7 +80,7 @@ def theme(page):
     for old, new in [
         ('<link href="/flash/css/flasher.css" rel="stylesheet">',
          '<link href="/flash/css/flasher.css" rel="stylesheet">\n  <link href="/flash/css/fluxcore.css" rel="stylesheet">'),
-        ('<body class="dark">', '<body class="light fluxcore">'),
+        ('<body class="dark">', '<body class="dark fluxcore">'),
         (LOGO_OLD, LOGO_NEW),
     ]:
         if old not in page:
