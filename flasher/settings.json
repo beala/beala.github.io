@@ -10,6 +10,8 @@
     "Heltec Mesh Node T1",
     "Seeed Studio SenseCAP MeshTracker X1",
     "AB Labs XIAO nRF52 LR2021",
+    "AB Labs WisBlock NiceRF LR2021",
+    "Meshnology W12",
     "RAK WisMesh Tag",
     "Seeed Studio SenseCAP T1000-E",
     "Heltec v3",
@@ -40,6 +42,66 @@
             "files": {
               "flash": "AB_Xiao_nrf52_LR2021_companion_radio_usb.*?\\.zip",
               "download": "AB_Xiao_nrf52_LR2021_companion_radio_usb.*?\\.uf2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "like": "RAK WisMesh 1W Booster (3401 + 13302)",
+      "name": "AB Labs WisBlock NiceRF LR2021",
+      "tooltip": "RAK3401 core with an AB Labs carrier and a NiceRF LoRa2021F33 (LR2021, 1 W). Needs a battery connected.",
+      "firmware": [
+        {
+          "class": "community",
+          "role": "companionBle",
+          "github": {
+            "type": "companion",
+            "files": {
+              "flash": "ab_labs_wisblock_nicerf_LoRa2021F33-2G4_companion_radio_ble.*?\\.zip",
+              "download": "ab_labs_wisblock_nicerf_LoRa2021F33-2G4_companion_radio_ble.*?\\.uf2"
+            }
+          }
+        },
+        {
+          "class": "community",
+          "role": "companionUsb",
+          "github": {
+            "type": "companion",
+            "files": {
+              "flash": "ab_labs_wisblock_nicerf_LoRa2021F33-2G4_companion_radio_usb.*?\\.zip",
+              "download": "ab_labs_wisblock_nicerf_LoRa2021F33-2G4_companion_radio_usb.*?\\.uf2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "like": "Heltec v4",
+      "name": "Meshnology W12",
+      "maker": "meshnology",
+      "maker_name": "Meshnology",
+      "tooltip": "ESP32-S3 with an LR2021",
+      "firmware": [
+        {
+          "class": "community",
+          "role": "companionBle",
+          "github": {
+            "type": "companion",
+            "files": {
+              "flash-wipe": "meshnology_w12_companion_radio_ble.*?-merged\\.bin",
+              "flash-update": "meshnology_w12_companion_radio_ble.*?-[a-f0-9]{7}\\.bin"
+            }
+          }
+        },
+        {
+          "class": "community",
+          "role": "companionUsb",
+          "github": {
+            "type": "companion",
+            "files": {
+              "flash-wipe": "meshnology_w12_companion_radio_usb.*?-merged\\.bin",
+              "flash-update": "meshnology_w12_companion_radio_usb.*?-[a-f0-9]{7}\\.bin"
             }
           }
         }

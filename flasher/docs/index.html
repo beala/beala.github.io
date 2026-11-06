@@ -87,6 +87,8 @@
     <tr><td>Heltec Mesh Node T1</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
     <tr><td>Seeed SenseCAP MeshTracker X1</td><td>LR2021</td><td>Companion USB / BLE</td></tr>
     <tr><td>AB Labs XIAO nRF52 + Wio-LR2021</td><td>LR2021</td><td>Companion USB / BLE</td></tr>
+    <tr><td>AB Labs WisBlock NiceRF LR2021 (RAK3401 + NiceRF LoRa2021F33)</td><td>LR2021</td><td>Companion USB / BLE</td></tr>
+    <tr><td>Meshnology W12</td><td>LR2021</td><td>Companion USB / BLE</td></tr>
     <tr><td>RAK WisMesh Tag</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
     <tr><td>Seeed SenseCAP T1000-E</td><td>LR1110</td><td>Companion USB / BLE</td></tr>
     <tr><td>Heltec V3</td><td>SX1262</td><td>Companion USB / BLE</td></tr>
@@ -220,7 +222,7 @@
     <li><strong>Lost for real:</strong> on the other radio, run <code>find beep &lt;name&gt;</code>, wait a few seconds,
       then <code>get find</code>. You should see <code>beeping for 120 s</code>. <code>find stop &lt;name&gt;</code>
       silences it.</li>
-    <li><strong>Both radios have an LR2021 (X1, AB Labs XIAO):</strong> run <code>find range &lt;name&gt;</code>, then <code>get find</code>, for
+    <li><strong>Both radios have an LR2021 (X1, AB Labs XIAO and WisBlock NiceRF, Meshnology W12):</strong> run <code>find range &lt;name&gt;</code>, then <code>get find</code>, for
       something like <code>42 m (+/- 4 m, 30/32 answers, -97 dBm)</code>. Move and repeat: if the number goes down,
       you're getting closer.</li>
   </ol>
@@ -234,7 +236,7 @@
     <tr><td><code>find me stop</code></td><td>Stop beeping (the button does too)</td><td>T1, X1, WisMesh Tag, T1000-E</td></tr>
     <tr><td><code>set find.allow &lt;name&gt;</code><br><code>set find.deny &lt;name&gt;</code><br><code>get find.allow</code></td><td>Let a contact make this radio beep and range to it, take that away, or list who's allowed (up to 8). They can't do anything else</td><td>All companion boards</td></tr>
     <tr><td><code>find beep &lt;name&gt;</code><br><code>find stop &lt;name&gt;</code></td><td>Make another radio beep for 2 minutes, or stop it</td><td>All companion boards; the other radio needs a buzzer or vibration motor</td></tr>
-    <tr><td><code>find range &lt;name&gt;</code></td><td>Measure the distance to another radio</td><td>LR2021 to LR2021 (X1, AB Labs XIAO)</td></tr>
+    <tr><td><code>find range &lt;name&gt;</code></td><td>Measure the distance to another radio</td><td>LR2021 to LR2021 (X1, AB Labs XIAO and WisBlock NiceRF, Meshnology W12)</td></tr>
     <tr><td><code>set find.extended on</code><br><code>set find.extended off</code><br><code>get find.extended</code></td><td>Use extended ranging for <code>find range</code> (off by default). The distance stays right while the radios move, and it adds a rough relative speed: <code>closing at ~20 m/s</code>, <code>moving apart at ~40 m/s</code>, or <code>not moving fast</code>. Speed comes in steps of about 20&nbsp;m/s, so it shows vehicles, not walking. Both radios need this build</td><td>LR2021 to LR2021</td></tr>
     <tr><td><code>get find</code></td><td>The latest answer, and how long ago it came</td><td>All companion boards</td></tr>
   </table>
@@ -365,7 +367,7 @@
     <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/chat_commands.md">docs/chat_commands.md</a>.</p>
 
   <h2 id="meshtastic">Meshtastic channel<a class="anchor" href="#meshtastic" aria-label="Copy link to this section">#</a></h2>
-  <p>A radio with an LR2021 (X1, AB Labs XIAO) can listen to a Meshtastic channel as well as MeshCore. Meshtastic
+  <p>A radio with an LR2021 (X1, AB Labs XIAO and WisBlock NiceRF, Meshnology W12) can listen to a Meshtastic channel as well as MeshCore. Meshtastic
     texts show up in the MeshCore app as one more channel, "Meshtastic LongFast", after your own. The app needs no
     changes. Nothing is ever sent on Meshtastic, and nothing heard there is passed on to MeshCore.</p>
 
@@ -419,7 +421,7 @@
     Source: <a href="https://github.com/beala/MeshCore/tree/beala/main"><code>beala/main</code></a>.</p>
 
   <h2 id="weather">Weather sensors<a class="anchor" href="#weather" aria-label="Copy link to this section">#</a></h2>
-  <p>A radio with an LR2021 (X1, AB Labs XIAO) can pick up wireless weather sensors from Ecowitt, Ambient Weather,
+  <p>A radio with an LR2021 (X1, AB Labs XIAO and WisBlock NiceRF, Meshnology W12) can pick up wireless weather sensors from Ecowitt, Ambient Weather,
     other Fine Offset models (Froggit, Misol, ...) and La Crosse View on 915&nbsp;MHz. Their readings show in the MeshCore app as one more
     channel, "Weather". Nothing is sent, and the app needs no changes.</p>
 
@@ -428,8 +430,8 @@
     <li>In the <a href="#radio-console">Radio console</a> (or the app's command line), run <code>wx on</code>. The
       radio listens for sensors for about 3 minutes (it doesn't hear the mesh during that time), then lists what it
       found in the console.</li>
-    <li>Disconnect and reconnect the app. A channel named <strong>Weather</strong> appears after your own (and after
-      Meshtastic's, if that's on).</li>
+    <li>Disconnect and reconnect the app. A channel named <strong>Weather</strong> appears after your own, in a fixed
+      slot after Meshtastic's (empty if that's off).</li>
     <li>Each sensor posts its first reading, then one every 30 minutes, for example
       <code>WH65 5a: 68.0F 50% wind 6 N gust 10 mph rain 1.00 in UV 0.0 1234 lux</code>. Lightning and the start of
       rain post straight away.</li>
@@ -472,7 +474,7 @@
 
   <h2 id="aircraft">Aircraft<a class="anchor" href="#aircraft" aria-label="Copy link to this section">#</a></h2>
   <p>Aircraft report their position about once a second over ADS-B: light aircraft in the US on 978&nbsp;MHz (UAT),
-    airliners and most others on 1090&nbsp;MHz. A radio with an LR2021 (X1, AB Labs XIAO) listens to both in short
+    airliners and most others on 1090&nbsp;MHz. A radio with an LR2021 (X1, AB Labs XIAO and WisBlock NiceRF, Meshnology W12) listens to both in short
     breaks from the mesh. Every 10 minutes the "Aircraft" channel gets a digest of the aircraft within 10 miles and
     below 10,000&nbsp;ft, closest first:
     <code>Nearby: N713SA 5,300 ft 2.1 mi N; N25430 6,100 ft 4.0 mi NE (+12 higher or farther)</code>.

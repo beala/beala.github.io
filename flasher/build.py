@@ -200,8 +200,10 @@ def main(flasher_dir, out_dir, preview=False):
         if base is None:
             sys.exit(f"extra_devices: {extra['name']} is like {extra['like']}, which isn't in the flasher catalog")
         device = json.loads(json.dumps(base))
-        device.update({k: v for k, v in extra.items() if k != "like"})
+        device.update({k: v for k, v in extra.items() if k not in ("like", "maker_name")})
         by_name[extra["name"]] = device
+        if device.get("maker") and device["maker"] not in config.get("maker", {}):   # a maker the catalog lacks
+            config.setdefault("maker", {})[device["maker"]] = {"name": extra.get("maker_name", device["maker"])}
     missing = [n for n in settings["devices"] if n not in by_name]
     if missing:
         sys.exit(f"Devices not in the flasher catalog (check the names): {missing}")
