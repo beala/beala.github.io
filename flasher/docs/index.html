@@ -117,6 +117,11 @@
     <li><strong>Radar sweep detector.</strong> <code>radar</code> listens on 1030&nbsp;MHz for the pulses ground radars
       send to aircraft and works out how fast the radars nearby are turning. Nothing is sent (see <a href="#radar">below</a>).
       <span class="branch">beala/main</span></li>
+    <li><strong>One at a time.</strong> Meshtastic, weather and aircraft each take some of the radio's time away from the
+      mesh, so only one is on at a time: turning one on turns the others off, and the reply says so. <code>radar</code>,
+      copying a radio and <code>find range</code> pause whichever is on until they finish. After you send, no listen starts until the repeats of
+      what you sent are in.
+      <span class="branch">beala/main</span></li>
     <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
       This uses Semtech's reference table, so settings up to 22 dBm give the power they say.
       <span class="branch">beala/fix-lr2021-pa-table</span></li>
@@ -404,7 +409,7 @@
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>mt on</code><br><code>mt off</code></td><td>Start or stop listening (saved)</td></tr>
+    <tr><td><code>mt on</code><br><code>mt off</code></td><td>Start or stop listening (saved). <code>mt on</code> turns weather and aircraft off: one at a time</td></tr>
     <tr><td><code>mt</code> or <code>get mt</code></td><td>The settings</td></tr>
     <tr><td><code>set mt.preset &lt;name&gt;</code></td><td><code>LongFast</code> (default), <code>LongModerate</code>, <code>LongSlow</code>, <code>MediumFast</code>, <code>MediumSlow</code>, <code>ShortFast</code>, <code>ShortSlow</code>, <code>ShortTurbo</code></td></tr>
     <tr><td><code>set mt.freq &lt;MHz&gt;</code><br><code>set mt.freq auto</code></td><td>The frequency. <code>auto</code> is the preset's default US slot (LongFast: 906.875)</td></tr>
@@ -466,7 +471,7 @@
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>wx on</code><br><code>wx off</code></td><td>Start or stop (saved)</td></tr>
+    <tr><td><code>wx on</code><br><code>wx off</code></td><td>Start or stop (saved). <code>wx on</code> turns Meshtastic and aircraft off: one at a time</td></tr>
     <tr><td><code>wx</code> or <code>get wx</code></td><td>The settings</td></tr>
     <tr><td><code>wx scan</code></td><td>Listen for sensors without a break (85&nbsp;s per brand), then list them in the console</td></tr>
     <tr><td><code>wx scan on</code><br><code>wx scan off</code></td><td>Listen all the time, with a console note for each new sensor (not saved)</td></tr>
@@ -507,7 +512,7 @@
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved)</td></tr>
+    <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved). <code>air on</code> turns Meshtastic and weather off: one at a time</td></tr>
     <tr><td><code>air scan on</code><br><code>air scan off</code></td><td>Listen all the time; the mesh isn't heard meanwhile (not saved)</td></tr>
     <tr><td><code>get air.planes</code></td><td>Every aircraft heard in the last 5 minutes, at any distance or height</td></tr>
     <tr><td><code>set air.every &lt;minutes&gt;</code></td><td>Minutes between digests (default 10; 0 = a post for each aircraft, once)</td></tr>
@@ -529,7 +534,7 @@ Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>radar [seconds] [threshold] [MHz]</code></td><td>Listen for 20&ndash;90&nbsp;s (default 60); the mesh isn't heard meanwhile. Threshold: dB over the noise (default 1), or a fixed level in dBm such as <code>-94</code></td></tr>
+    <tr><td><code>radar [seconds] [threshold] [MHz]</code></td><td>Listen for 20&ndash;90&nbsp;s (default 60); the mesh isn't heard meanwhile, and Meshtastic, weather or aircraft pauses. Threshold: dB over the noise (default 1), or a fixed level in dBm such as <code>-94</code></td></tr>
     <tr><td><code>get radar</code></td><td>The last result, or the progress</td></tr>
     <tr><td><code>get radar.bursts</code></td><td>When the bursts came</td></tr>
     <tr><td><code>radar stop</code></td><td>Finish now</td></tr>
