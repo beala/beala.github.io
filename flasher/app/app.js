@@ -7,6 +7,11 @@
 const NUS = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const NUS_RX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';   // we write commands here
 const NUS_TX = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';   // the radio notifies replies here
+// fluxcore firmware also has its own service with the same frames, so this page and the MeshCore app
+// can share one connection (on an iPhone, both apps at once) without seeing each other's traffic
+const FLUX = 'f1c00001-8a5d-4c75-b0c2-666c7578636f';
+const FLUX_RX = 'f1c00002-8a5d-4c75-b0c2-666c7578636f';
+const FLUX_TX = 'f1c00003-8a5d-4c75-b0c2-666c7578636f';
 
 const CMD = { APP_START: 1, DEVICE_QUERY: 22, BATT: 20, CLI: 66 };
 const RESP = { OK: 0, ERR: 1, SELF_INFO: 5, BATT: 12, DEVICE_INFO: 13, CLI_REPLY: 29 };
@@ -17,12 +22,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------------------------------------------------------------- the radio link
 class Radio {
-  constructor() { this.device = null; this.rx = null; this.chain = Promise.resolve(); this.waiting = null; this.onclose = null; }
+  constructor() { this.device = null; this.rx = null; this.chain = Promise.resolve(); this.lastWrite = Promise.resolve(); this.waiting = null; this.onclose = null; }
 
   async pick() {
     this.device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [NUS] }, { namePrefix: 'MeshCore' }],
-      optionalServices: [NUS],
+      optionalServices: [NUS, FLUX],
     });
     this.device.addEventListener('gattserverdisconnected', () => {
       this.rx = null;
@@ -33,9 +38,19 @@ class Radio {
 
   async open() {
     const server = await this.device.gatt.connect();
-    const svc = await server.getPrimaryService(NUS);
-    const rx = await svc.getCharacteristic(NUS_RX);
-    const tx = await svc.getCharacteristic(NUS_TX);
+    let svc, rx, tx;
+    try {
+      svc = await server.getPrimaryService(FLUX);
+      rx = await svc.getCharacteristic(FLUX_RX);
+      tx = await svc.getCharacteristic(FLUX_TX);
+      this.shared = true;
+    } catch (e) {   // firmware from before the fluxcore service: the MeshCore app's channel
+      console.log('no fluxcore service (' + e.message + '), using the MeshCore app\'s');
+      svc = await server.getPrimaryService(NUS);
+      rx = await svc.getCharacteristic(NUS_RX);
+      tx = await svc.getCharacteristic(NUS_TX);
+      this.shared = false;
+    }
     tx.addEventListener('characteristicvaluechanged', (e) => {
       const v = e.target.value;
       this.frame(new Uint8Array(v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength)));
@@ -55,6 +70,19 @@ class Radio {
     else if (f[0] === RESP.ERR && !w.codes.includes(RESP.ERR)) { this.waiting = null; w.reject(new Error('the radio said error ' + (f[1] ?? ''))); }
   }
 
+  // Writes a frame. Without a response when the radio allows it (fewer round trips on a busy link);
+  // Bluefy has only writeValue, which picks by itself. The browser takes one write at a time on a
+  // characteristic, so a write still in flight (eg. after a timeout) is waited for first.
+  async write(data) {
+    await this.lastWrite;
+    const rx = this.rx;
+    if (!rx) throw new Error('not connected');
+    const p = rx.properties && rx.properties.writeWithoutResponse && rx.writeValueWithoutResponse ? rx.writeValueWithoutResponse(data)
+      : rx.writeValueWithResponse ? rx.writeValueWithResponse(data) : rx.writeValue(data);
+    this.lastWrite = p.catch(() => {});
+    return p;
+  }
+
   // One request at a time: send a frame, wait for a reply with one of these codes.
   request(bytes, codes, timeout = 5000) {
     const run = () => new Promise((resolve, reject) => {
@@ -63,9 +91,7 @@ class Radio {
       const done = (f) => { clearTimeout(t); resolve(f); };
       this.waiting = { codes, resolve: done, reject: (e) => { clearTimeout(t); reject(e); } };
       const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-      // Bluefy has only writeValue; Chrome has both
-      (this.rx.writeValueWithResponse ? this.rx.writeValueWithResponse(data) : this.rx.writeValue(data))
-        .catch((e) => { if (this.waiting && this.waiting.resolve === done) this.waiting = null; clearTimeout(t); reject(e); });
+      this.write(data).catch((e) => { if (this.waiting && this.waiting.resolve === done) this.waiting = null; clearTimeout(t); reject(e); });
     });
     const p = this.chain.then(run, run);
     this.chain = p.catch(() => {});
@@ -130,7 +156,8 @@ async function connect() {
     $('tabs').hidden = false;
     placeMe();
     showTab(tab === 'start' ? 'air' : tab);
-    log('note', `Connected to ${info.name}.`);
+    log('note', `Connected to ${info.name}` + (radio.shared ? ' on the fluxcore channel: the MeshCore app can stay connected too.'
+      : '. It isn’t using the fluxcore channel, so close the MeshCore app while this page is connected. Radios updated since November 2026 have the channel: if this one has been updated, forget it in your Bluetooth settings and pair it again so the phone or computer sees it.'));
   } catch (e) {
     if (e.name === 'NotFoundError') { setNode('Not connected', false); return; }   // closed the picker
     setNode('Not connected', false);

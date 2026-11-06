@@ -513,8 +513,9 @@
   </ol>
   <p><strong>On a map.</strong> Open the <a href="/app/">fluxcore app</a> in Chrome or Edge (computer or Android) or
     <a href="https://apps.apple.com/app/id1492822055">Bluefy</a> (iPhone, iPad), connect to the radio over Bluetooth, and
-    every aircraft it hears shows on a map with its trail, altitude, speed and heading, updated every 2 seconds. Close the
-    MeshCore app first: a radio takes one Bluetooth connection at a time.</p>
+    every aircraft it hears shows on a map with its trail, altitude, speed and heading, updated every 2 seconds. The
+    app talks to the radio on its own Bluetooth channel, so the MeshCore app can stay connected (on an iPhone, both
+    at once). If the app says it isn't on that channel, forget the radio in your Bluetooth settings and pair it again.</p>
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
