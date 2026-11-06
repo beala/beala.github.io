@@ -4,6 +4,7 @@ that serves firmware from your own releases.
 
   <out>/                        landing page (landing/)
   <out>/docs/                   docs page (flasher/docs), with the latest build filled in
+  <out>/app/                    the fluxcore app (flasher/app): Bluetooth to a radio, aircraft on a map
   <out>/flash/                  the flasher, moved from / to /flash/ and restyled
 
 The official flasher (meshcore-dev/flasher.meshcore.io) is a static site, but it gets its firmware
@@ -279,6 +280,9 @@ def main(flasher_dir, out_dir, preview=False):
     shutil.copytree(HERE / "docs", docs)
     page = (docs / "index.html").read_text()
     (docs / "index.html").write_text(page.replace("<!--LATEST-->", latest_build_html(releases[0])))
+
+    # 6. The app (/app/): Bluetooth to a fluxcore radio, aircraft on a map. Static files as they are
+    shutil.copytree(HERE / "app", site / "app")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>fluxcore app</title>
+<meta name="description" content="Connect to a fluxcore radio over Bluetooth: aircraft on a map, and the radio's command line.">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<meta name="theme-color" content="#050805">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%23050805%22/%3E%3Crect x=%225%22 y=%224%22 width=%226%22 height=%228%22 fill=%22%233dff6e%22/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#050805;--fg:#b4eeac;--hi:#e0ffda;--sub:#8fbd87;--line:#1c331b;--acid:#3dff6e;--ink:#031003;--warn:#ffd25a;--bad:#ff6b5a;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono','Courier New',monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.5 var(--mono);overscroll-behavior:none;-webkit-text-size-adjust:100%}
+body{height:100dvh}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+a{color:var(--acid)}
+button{font:inherit;color:var(--acid);background:transparent;border:1px solid var(--acid);padding:5px 12px;cursor:pointer;border-radius:0}
+button:hover:not(:disabled){background:var(--acid);color:var(--ink)}
+button:disabled{opacity:.4;cursor:default}
+button.quiet{border-color:var(--line);color:var(--sub)}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.logo{color:var(--acid);text-decoration:none;font-size:20px;letter-spacing:-1px;text-shadow:0 0 12px rgb(61 255 110/.45)}
+.logo span{color:var(--sub);font-size:13px;letter-spacing:0;margin-left:6px}
+#node{color:var(--sub);font-size:12px;flex:1;min-width:160px}
+#node b{color:var(--hi);font-weight:400}
+.dot{display:inline-block;width:7px;height:7px;background:var(--line);margin-right:6px;vertical-align:1px}
+.dot.on{background:var(--acid);box-shadow:0 0 8px var(--acid)}
+nav{display:flex;gap:0;border-bottom:1px solid var(--line)}
+nav button{border:0;border-right:1px solid var(--line);color:var(--sub);padding:7px 16px}
+nav button[aria-selected=true]{color:var(--ink);background:var(--acid)}
+main{flex:1;min-height:0;display:flex}
+.tab{flex:1;min-height:0;display:none}
+.tab.on{display:flex}
+/* start screen */
+#start{flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:16px}
+#start p{max-width:440px;margin:0;color:var(--sub)}
+#start .big{font-size:16px;padding:10px 22px;box-shadow:0 0 14px rgb(61 255 110/.2)}
+#start .err{color:var(--bad)}
+/* aircraft */
+#air{flex-direction:row}
+#map{flex:1;min-width:0;background:#0a0f0a}
+#side{width:300px;border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#side .bar{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#airstate{font-size:12px;color:var(--sub);padding:6px 10px;border-bottom:1px solid var(--line)}
+#planes{list-style:none;margin:0;padding:0 0 env(safe-area-inset-bottom);overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+#planes li{padding:6px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px}
+#planes li:hover,#planes li.sel{background:#0f2a12}
+#planes .cs{color:var(--hi);font-size:13px}
+#planes .meta{color:var(--sub)}
+#planes .old{opacity:.45}
+.empty{padding:14px 10px;color:var(--sub);font-size:12px}
+/* map marks */
+.plane{background:none;border:0}
+.plane svg{filter:drop-shadow(0 0 3px rgb(0 0 0/.9))}
+.plane .tag{position:absolute;left:22px;top:-2px;white-space:nowrap;font:11px/1.2 var(--mono);color:var(--hi);text-shadow:0 0 3px #000,0 0 3px #000}
+.plane .tag i{font-style:normal;color:var(--sub)}
+.me{background:none;border:0}
+.leaflet-container{font-family:var(--mono);background:#0a0f0a}
+.tiles{filter:invert(1) hue-rotate(180deg) brightness(.8) contrast(.85) saturate(.35)}
+.leaflet-popup-content a{color:var(--acid)}
+.leaflet-control-attribution{background:rgb(5 8 5/.75)!important;color:var(--sub)!important;font-size:10px}
+.leaflet-control-attribution a{color:var(--sub)!important}
+.leaflet-bar a{background:#081008;color:var(--acid);border-color:var(--line)!important;border-radius:0!important}
+.leaflet-bar{border-radius:0!important;border:1px solid var(--line)!important}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#081008;color:var(--fg);border-radius:0;border:1px solid var(--line)}
+.leaflet-popup-content{font:12px/1.5 var(--mono);margin:10px 12px}
+.leaflet-popup-content b{color:var(--hi);font-weight:400;font-size:14px}
+/* console */
+#con{flex-direction:column}
+#out{flex:1;overflow:auto;margin:0;padding:10px 16px;white-space:pre-wrap;word-break:break-word;font:13px/1.5 var(--mono)}
+#out .cmd{color:var(--acid)}
+#out .rep{color:var(--fg)}
+#out .note{color:var(--sub)}
+#out .err{color:var(--bad)}
+#cli{display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+#cli span{color:var(--acid);padding:9px 0 9px 16px}
+#cli input{flex:1;background:transparent;border:0;color:var(--hi);font:16px var(--mono);padding:8px 10px;outline:none}
+@media(max-width:700px){
+  #air{flex-direction:column}
+  #side{width:auto;height:42%;border-left:0;border-top:1px solid var(--line)}
+  button{min-height:40px}
+  nav button{flex:1;min-height:42px}
+  #side .bar{flex-wrap:nowrap}
+  #side .bar button{flex:1;padding:5px 6px;white-space:nowrap}
+  #airstate{font-size:11px;padding:5px 10px}
+  #planes li{padding:8px 12px}
+  .plane .tag{font-size:10px}
+  header{padding:8px 12px;gap:8px 12px}
+  #node{order:3;flex-basis:100%}
+  #node .wide{display:none}
+  .logo{flex:1}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">fluxcore<span>app</span></a>
+  <div id="node"><span class="dot" id="dot"></span><span id="nodetext">Not connected</span></div>
+  <button id="connect">Connect</button>
+</header>
+<nav id="tabs" hidden>
+  <button data-tab="air" aria-selected="true">Aircraft</button>
+  <button data-tab="con" aria-selected="false">Console</button>
+</nav>
+<main>
+  <section class="tab on" id="start">
+    <p>Connect to a fluxcore radio over Bluetooth to see the aircraft it hears on a map and to run its commands.</p>
+    <button class="big" id="connect2">Connect a radio</button>
+    <p id="support"></p>
+  </section>
+  <section class="tab" id="air">
+    <div id="map"></div>
+    <div id="side">
+      <div class="bar">
+        <button id="airtoggle">…</button>
+        <button id="airscan" class="quiet" title="Listen for aircraft all the time. The mesh isn't heard meanwhile.">Listen all the time</button>
+        <button id="fit" class="quiet">Fit</button>
+      </div>
+      <div id="airstate"></div>
+      <ul id="planes"></ul>
+    </div>
+  </section>
+  <section class="tab" id="con">
+    <pre id="out"></pre>
+    <form id="cli"><span>&gt;</span><input id="cmd" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="a command, eg. ver, air, get air.stats"></form>
+  </section>
+</main>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

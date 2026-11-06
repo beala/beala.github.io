@@ -55,7 +55,7 @@
 </style>
 </head>
 <body>
-<nav class="top" aria-label="Main navigation"><a href="/">fluxcore.party</a><span class="links"><a href="/flash/">Flasher</a><a href="https://github.com/beala/MeshCore">Source ↗</a></span></nav>
+<nav class="top" aria-label="Main navigation"><a href="/">fluxcore.party</a><span class="links"><a href="/flash/">Flasher</a><a href="/app/">App</a><a href="https://github.com/beala/MeshCore">Source ↗</a></span></nav>
 <main>
   <h1>fluxcore docs<span class="cursor" aria-hidden="true"></span></h1>
   <p class="lede">Firmware built from upstream MeshCore's <code>dev</code> branch plus fluxcore's features and fixes, for a short list of boards.</p>
@@ -511,12 +511,17 @@
     <li>Disconnect and reconnect the app. A channel named <strong>Aircraft</strong> appears.</li>
     <li>Set your location in the app for distance and direction (and for the 10-mile limit).</li>
   </ol>
+  <p><strong>On a map.</strong> Open the <a href="/app/">fluxcore app</a> in Chrome or Edge (computer or Android) or
+    <a href="https://apps.apple.com/app/id1492822055">Bluefy</a> (iPhone, iPad), connect to the radio over Bluetooth, and
+    every aircraft it hears shows on a map with its trail, altitude, speed and heading, updated every 2 seconds. Close the
+    MeshCore app first: a radio takes one Bluetooth connection at a time.</p>
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved). <code>air on</code> turns Meshtastic and weather off: one at a time</td></tr>
     <tr><td><code>air scan on</code><br><code>air scan off</code></td><td>Listen all the time; the mesh isn't heard meanwhile (not saved)</td></tr>
     <tr><td><code>get air.planes</code></td><td>Every aircraft heard in the last 5 minutes, at any distance or height</td></tr>
+    <tr><td><code>get air.list [start]</code></td><td>The same as numbers for apps, a page at a time (the <a href="/app/">app</a>'s map uses it)</td></tr>
     <tr><td><code>set air.every &lt;minutes&gt;</code></td><td>Minutes between digests (default 10; 0 = a post for each aircraft, once)</td></tr>
     <tr><td><code>set air.range &lt;miles&gt;</code></td><td>Only aircraft closer than this (default 10; 0 = any)</td></tr>
     <tr><td><code>set air.below &lt;feet&gt;</code></td><td>Only aircraft lower than this (default 10000; 0 = any)</td></tr>
