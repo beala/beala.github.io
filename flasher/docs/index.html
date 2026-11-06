@@ -72,6 +72,7 @@
     <a href="#meshtastic">Meshtastic channel</a>
     <a href="#weather">Weather sensors</a>
     <a href="#aircraft">Aircraft</a>
+    <a href="#radar">Radar</a>
     <a href="#encryption">Encryption v2</a>
     <a href="#key-randomness">Key randomness</a>
     <a href="#commands">New commands</a>
@@ -500,6 +501,24 @@
   </table>
   </div>
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/aircraft.md">docs/aircraft.md</a>.</p>
+
+  <h2 id="radar">Radar sweep detector<a class="anchor" href="#radar" aria-label="Copy link to this section">#</a></h2>
+  <p>Ground radars interrogate aircraft transponders on 1030&nbsp;MHz with a rotating beam. A radio with an LR2021
+    hears a burst of pulses each time the beam points its way, and <code>radar</code> works out how fast the radars
+    around are turning: about 4.8&nbsp;s for an airport radar, 10&ndash;12&nbsp;s for a long-range one. Nothing is sent.</p>
+  <pre><code>radar
+Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 of 6 turns).</code></pre>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>radar [seconds] [threshold] [MHz]</code></td><td>Listen for 20&ndash;90&nbsp;s (default 60); the mesh isn't heard meanwhile. Threshold: dB over the noise (default 1), or a fixed level in dBm such as <code>-94</code></td></tr>
+    <tr><td><code>get radar</code></td><td>The last result, or the progress</td></tr>
+    <tr><td><code>get radar.bursts</code></td><td>When the bursts came</td></tr>
+    <tr><td><code>radar stop</code></td><td>Finish now</td></tr>
+  </table>
+  </div>
+  <p>Indoors the pulses are only a dB or two over the noise; a window or the attic helps. Full write-up:
+    <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/radar.md">docs/radar.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
