@@ -108,8 +108,8 @@
       Offset and La Crosse View sensors show in the app as a "Weather" channel. The radio steps away from the mesh only around each
       sensor's next packet (see <a href="#weather">below</a>).
       <span class="branch">beala/main</span></li>
-    <li><strong>Aircraft.</strong> With <code>air on</code>, light aircraft reporting on 978&nbsp;MHz (UAT) show in an
-      "Aircraft" channel with callsign, altitude, distance, speed and heading (see <a href="#aircraft">below</a>).
+    <li><strong>Aircraft.</strong> With <code>air on</code>, aircraft reporting on 978&nbsp;MHz (UAT) and 1090&nbsp;MHz
+      (ADS-B) show in an "Aircraft" channel: a digest of the ones nearby every 10 minutes (see <a href="#aircraft">below</a>).
       <span class="branch">beala/main</span></li>
     <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
       This uses Semtech's reference table, so settings up to 22 dBm give the power they say.
@@ -471,23 +471,28 @@
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/weather_sensors.md">docs/weather_sensors.md</a>.</p>
 
   <h2 id="aircraft">Aircraft<a class="anchor" href="#aircraft" aria-label="Copy link to this section">#</a></h2>
-  <p>Light aircraft in the US report their position about once a second on 978&nbsp;MHz (UAT ADS-B). A radio with an
-    LR2021 (X1, AB Labs XIAO) can listen in short breaks from the mesh and post each aircraft to an "Aircraft" channel:
-    <code>N501EL a63e16 6,200 ft, 2.1 mi SW, 88 kt heading 214</code>. Nothing is ever sent on 978&nbsp;MHz.</p>
+  <p>Aircraft report their position about once a second over ADS-B: light aircraft in the US on 978&nbsp;MHz (UAT),
+    airliners and most others on 1090&nbsp;MHz. A radio with an LR2021 (X1, AB Labs XIAO) listens to both in short
+    breaks from the mesh. Every 10 minutes the "Aircraft" channel gets a digest of the aircraft within 10 miles and
+    below 10,000&nbsp;ft, closest first:
+    <code>Nearby: N713SA 5,300 ft 2.1 mi N; N25430 6,100 ft 4.0 mi NE (+12 higher or farther)</code>.
+    Nothing is ever sent on 978 or 1090&nbsp;MHz.</p>
   <ol>
     <li>In the <a href="#radio-console">Radio console</a>, run <code>air on</code> (listens 10% of the time), or
       <code>air scan on</code> to listen all the time with a console note for each new aircraft.</li>
     <li>Disconnect and reconnect the app. A channel named <strong>Aircraft</strong> appears.</li>
-    <li>Set your location in the app for distance and direction.</li>
+    <li>Set your location in the app for distance and direction (and for the 10-mile limit).</li>
   </ol>
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved)</td></tr>
     <tr><td><code>air scan on</code><br><code>air scan off</code></td><td>Listen all the time; the mesh isn't heard meanwhile (not saved)</td></tr>
-    <tr><td><code>get air.planes</code></td><td>Aircraft heard in the last 5 minutes</td></tr>
-    <tr><td><code>set air.every &lt;minutes&gt;</code></td><td>How often the same aircraft is posted again (default 10)</td></tr>
-    <tr><td><code>set air.range &lt;miles&gt;</code></td><td>Only aircraft closer than this (default: any)</td></tr>
+    <tr><td><code>get air.planes</code></td><td>Every aircraft heard in the last 5 minutes, at any distance or height</td></tr>
+    <tr><td><code>set air.every &lt;minutes&gt;</code></td><td>Minutes between digests (default 10; 0 = a post for each aircraft, once)</td></tr>
+    <tr><td><code>set air.range &lt;miles&gt;</code></td><td>Only aircraft closer than this (default 10; 0 = any)</td></tr>
+    <tr><td><code>set air.below &lt;feet&gt;</code></td><td>Only aircraft lower than this (default 10000; 0 = any)</td></tr>
+    <tr><td><code>set air.band 978|1090|both</code></td><td>Which to listen to (default both)</td></tr>
     <tr><td><code>set air.duty &lt;percent&gt;</code></td><td>Share of the time spent listening (default 10)</td></tr>
     <tr><td><code>get air.stats</code></td><td>Messages, corrections, aircraft, posts</td></tr>
   </table>
