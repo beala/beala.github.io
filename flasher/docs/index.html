@@ -58,23 +58,23 @@
 <nav class="top" aria-label="Main navigation"><a href="/">fluxcore.party</a><span class="links"><a href="/flash/">Flasher</a><a href="https://github.com/beala/MeshCore">Source ↗</a></span></nav>
 <main>
   <h1>fluxcore docs<span class="cursor" aria-hidden="true"></span></h1>
-  <p class="lede">Firmware built from upstream MeshCore's <code>dev</code> branch plus a handful of fixes, for a short list of boards.</p>
+  <p class="lede">Firmware built from upstream MeshCore's <code>dev</code> branch plus fluxcore's features and fixes, for a short list of boards.</p>
   <div class="nav">
     <a class="primary" href="/flash/">Open the flasher</a>
     <a href="https://github.com/beala/MeshCore/releases">All releases</a>
     <a href="https://github.com/beala/MeshCore">Source</a>
     <a href="#differences">What's different</a>
-    <a href="#alerts">Buzzer &amp; LED</a>
-    <a href="#find-me">Find me</a>
-    <a href="#flood-retry">Flood retry</a>
-    <a href="#clone-takeover">One key, several radios</a>
-    <a href="#chat-commands">Commands in a chat</a>
     <a href="#meshtastic">Meshtastic channel</a>
     <a href="#weather">Weather sensors</a>
     <a href="#aircraft">Aircraft</a>
     <a href="#radar">Radar</a>
-    <a href="#encryption">Encryption v2</a>
+    <a href="#clone-takeover">One key, several radios</a>
+    <a href="#flood-retry">Flood retry</a>
+    <a href="#chat-commands">Commands in a chat</a>
     <a href="#key-randomness">Key randomness</a>
+    <a href="#find-me">Find me</a>
+    <a href="#alerts">Buzzer &amp; LED</a>
+    <a href="#encryption">Encryption v2</a>
     <a href="#commands">New commands</a>
   </div>
 
@@ -100,8 +100,8 @@
 
   <h2 id="differences">What's different from mainline firmware<a class="anchor" href="#differences" aria-label="Copy link to this section">#</a></h2>
 
-  <h3 id="x1-radio">MeshTracker X1 (LR2021 radio)<a class="anchor" href="#x1-radio" aria-label="Copy link to this section">#</a></h3>
-  <p>These change the LR2021 driver, so they only affect the X1 on this site.</p>
+  <h3 id="x1-radio">LR2021 radios (X1, AB Labs XIAO and WisBlock NiceRF, Meshnology W12)<a class="anchor" href="#x1-radio" aria-label="Copy link to this section">#</a></h3>
+  <p>These use or change the LR2021 driver, so they only affect boards with that chip.</p>
   <ul>
     <li><strong>Meshtastic channel.</strong> With <code>mt on</code>, the radio also listens to Meshtastic LongFast and
       shows its texts in the app as one more channel. Receive only; the radio chip hops between the two networks by
@@ -114,6 +114,9 @@
     <li><strong>Aircraft.</strong> With <code>air on</code>, aircraft reporting on 978&nbsp;MHz (UAT) and 1090&nbsp;MHz
       (ADS-B) show in an "Aircraft" channel: a digest of the ones nearby every 10 minutes (see <a href="#aircraft">below</a>).
       <span class="branch">beala/main</span></li>
+    <li><strong>Radar sweep detector.</strong> <code>radar</code> listens on 1030&nbsp;MHz for the pulses ground radars
+      send to aircraft and works out how fast the radars nearby are turning. Nothing is sent (see <a href="#radar">below</a>).
+      <span class="branch">beala/main</span></li>
     <li><strong>Full transmit power.</strong> RadioLib's power table for the LR2021 stops rising at about 14 dBm, whatever you set.
       This uses Semtech's reference table, so settings up to 22 dBm give the power they say.
       <span class="branch">beala/fix-lr2021-pa-table</span></li>
@@ -124,7 +127,7 @@
       <span class="branch">beala/fix-lr2021-agc-reset</span></li>
     <li><strong>Correct boosted-gain status.</strong> The boot log always said RX boosted gain was off, even when it was on.
       <span class="branch">beala/fix-lr2021-rx-boost-status</span></li>
-    <li><strong>SIMO power supply.</strong> The radio runs from its built-in DC-DC converter, which uses less current.
+    <li><strong>SIMO power supply (X1 and AB Labs XIAO).</strong> The radio runs from its built-in DC-DC converter, which uses less current.
       <span class="branch">beala/lr2021-simo-flag, beala/x1-simo</span></li>
     <li><strong>Radio diagnostics.</strong> The two commands below, plus transmit fault logging in debug builds.
       <span class="branch">beala/lr2021-tx-fault-log, beala/lr2021-rx-gain-step, beala/lr2021-diagnostics</span></li>
@@ -627,8 +630,8 @@ Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 
     <li><strong>A standard generator.</strong> Keys come from HMAC-DRBG, the NIST-standard random generator, checked
       against NIST's official test vectors.</li>
   </ul>
-  <p><strong>Which radios it affects:</strong> it's a real fix on the Heltec V3 and V4. The T1, X1, T1000-E,
-    WisMesh Tag and RAK3401 already used their chip's hardware generator, and now also check that it worked.</p>
+  <p><strong>Which radios it affects:</strong> it's a real fix on the Heltec V3 and V4 and the Meshnology W12. The T1, X1, T1000-E,
+    WisMesh Tag, RAK3401 and AB Labs XIAO already used their chip's hardware generator, and now also check that it worked.</p>
   <p><strong>Your existing key doesn't change.</strong> Updating the firmware keeps it. To get a key made the new way,
     do a full erase when flashing. That gives the radio a new identity, so your contacts will need to add it again.
     Run <code>get entropy</code> afterwards to check there was enough randomness.</p>
@@ -666,7 +669,7 @@ Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/entropy/docs/entropy.md">docs/entropy.md</a>.
     Source: <a href="https://github.com/beala/MeshCore/tree/beala/entropy"><code>beala/entropy</code></a>.</p>
 
-  <h2 id="commands">New commands (MeshTracker X1)<a class="anchor" href="#commands" aria-label="Copy link to this section">#</a></h2>
+  <h2 id="commands">New commands (LR2021 radios)<a class="anchor" href="#commands" aria-label="Copy link to this section">#</a></h2>
   <p>Send these from the companion app's command line (or any client that can run companion CLI commands). Other radios reply <code>Unknown command</code>.</p>
 
   <h3 id="radio-faults"><code>get radio.faults</code><a class="anchor" href="#radio-faults" aria-label="Copy link to this section">#</a></h3>
