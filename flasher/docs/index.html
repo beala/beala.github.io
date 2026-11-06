@@ -323,6 +323,18 @@
     sender sees the message fail, so take over on the radio you have with you. If you send a message from a
     backup, its console offers to make it the main radio.</p>
 
+  <h3 id="clone-copy">Copy a radio<a class="anchor" href="#clone-copy" aria-label="Copy link to this section">#</a></h3>
+  <p>To set up a second radio with your key, copy your radio onto it: key, contacts, channels, encryption policies
+    and settings. Put the two radios next to each other. On the new radio send <code>clone receive</code>: it
+    shows a 6-digit code and waits 5 minutes. Then, on the radio you're copying, send <code>clone send</code>
+    and the code. A few seconds later it says "Copied to the other radio: 17 KB in 1.5 s", and the new radio
+    restarts with your key as a backup. The radio you copied from becomes the main radio. The new radio keeps
+    its own transmit power, receiver gain, BLE PIN and GPS settings. Both radios need an LR2021.</p>
+  <p>The code protects the copy with CPace, a password-authenticated key exchange (IRTF CFRG, X25519). Someone
+    listening can't test guesses of the code, and a radio pretending to be the other one gets one guess. The data
+    goes over the LR2021's fast FLRC mode (1.3 Mbps, on 920 MHz in the US), encrypted with ChaCha20-Poly1305. The
+    new radio checks the whole copy before replacing anything, so a failed copy leaves it as it was.</p>
+
   <h3 id="radio-console">The Radio console contact<a class="anchor" href="#radio-console" aria-label="Copy link to this section">#</a></h3>
   <p>Every radio with this firmware adds a contact called <strong>Radio console</strong> to the app. It isn't a
     real node, and messages to it never go on air: the radio runs them as commands and replies in the same chat.
@@ -341,6 +353,9 @@
     <tr><td><code>yes</code></td><td>Accept the takeover the console just offered</td></tr>
     <tr><td><code>clone</code></td><td>This radio's role, how many messages it left unanswered as a backup, and when another radio with the key was last heard</td></tr>
     <tr><td><code>clone off</code></td><td>Answer as normal again</td></tr>
+    <tr><td><code>clone receive</code></td><td>On a new radio: wait 5 minutes to become a copy of another radio, and show the code</td></tr>
+    <tr><td><code>clone send &lt;code&gt;</code></td><td>Copy this radio to the one next to it showing the code</td></tr>
+    <tr><td><code>clone stop</code></td><td>End a copy that's running</td></tr>
   </table>
   </div>
   <p>The role is saved and survives a reboot. A radio that was off during the takeover doesn't know about it; the
