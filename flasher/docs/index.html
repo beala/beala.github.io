@@ -583,11 +583,18 @@ Carol: [direct, 2 of 6 lost] &#9618;&#9618;&#9618;&#9618;the gate code is 4471, 
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>dmg on</code><br><code>dmg off</code></td><td>Start or stop (saved)</td></tr>
-    <tr><td><code>set dmg.all on</code><br><code>set dmg.all off</code></td><td>Also show damaged messages that arrived whole too (saved; default off)</td></tr>
-    <tr><td><code>dmg</code> or <code>get dmg</code></td><td>Packets heard damaged, read, shown, fixed, joined from copies, also heard whole</td></tr>
+    <tr><td><code>set dmg.all on</code><br><code>set dmg.all off</code></td><td>Show everything (saved; default off): also damaged copies of messages that arrived whole, your own echoes, and each damaged packet that couldn't be read, with what it was (advert, ack, someone else's message...), its signal, and the radio that sent it</td></tr>
+    <tr><td><code>dmg</code> or <code>get dmg</code></td><td>Damaged packets heard; those read (shown, fixed, joined, heard whole too); those not read, by why: adverts (not encrypted, so nothing to read), acks, for others (other people's messages, channels you don't have), other traffic, too damaged</td></tr>
+    <tr><td><code>get dmg.from</code></td><td>Where the damaged packets come from: for each radio that sent them (the last repeater, or the sender), how many arrived damaged out of all heard, and the average signal (SNR) of the damaged and the whole ones. Damage at low SNR means a weak link; at good SNR, collisions or interference</td></tr>
     <tr><td><code>get dmg.log</code></td><td>The last 8 damaged packets and what became of them</td></tr>
+    <tr><td><code>dmg reset</code></td><td>Start the counts again</td></tr>
   </table>
   </div>
+  <p><strong>All of this is guesswork from damaged bytes, each guess with a rule.</strong> A piece counts as read
+    when it decrypts to text (noise passes about once in 87,000 tries), and the first piece also needs a sensible
+    timestamp. A packet's type comes from its unencrypted first byte, checked against its size; who sent it, from
+    the last repeater in its path (IDs are 1 byte, so a name is the likely radio, not a certain one). Every rule,
+    its numbers and how it can go wrong: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/damaged_packets.md#how-it-decides">How it decides</a>.</p>
   <p>On the bench, near the edge of range, 6 in 10 pieces of damaged packets came through. Full write-up:
     <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/damaged_packets.md">docs/damaged_packets.md</a>.</p>
 
