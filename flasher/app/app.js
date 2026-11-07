@@ -138,6 +138,7 @@ function showTab(name) {
   for (const s of document.querySelectorAll('.tab')) s.classList.toggle('on', s.id === name);
   for (const b of document.querySelectorAll('#tabs button')) b.setAttribute('aria-selected', b.dataset.tab === name);
   if (name === 'air') { map.invalidateSize(); pollAir(true); }
+  if (name === 'rad') pollRadios(true);
   if (name === 'con') $('cmd').focus();
 }
 
@@ -156,8 +157,8 @@ async function connect() {
     $('tabs').hidden = false;
     placeMe();
     showTab(tab === 'start' ? 'air' : tab);
-    log('note', `Connected to ${info.name}` + (radio.shared ? ' on the fluxcore channel: the MeshCore app can stay connected too.'
-      : '. It isn’t using the fluxcore channel, so close the MeshCore app while this page is connected. Radios updated since November 2026 have the channel: if this one has been updated, forget it in your Bluetooth settings and pair it again so the phone or computer sees it.'));
+    log('note', `Connected to ${info.name}.` + (radio.shared ? ' The MeshCore app can stay connected too.'
+      : ' Close the MeshCore app while this is connected. To use both at once: forget the radio in Bluetooth settings, then pair it again.'));
   } catch (e) {
     if (e.name === 'NotFoundError') { setNode('Not connected', false); return; }   // closed the picker
     setNode('Not connected', false);
@@ -401,6 +402,162 @@ $('airscan').onclick = async () => {
   const r = await radio.cli($('airscan').dataset.on ? 'air scan off' : 'air scan on');
   $('airstate').textContent = r;
   airAt = 0;
+};
+
+// ---------------------------------------------------------------- radios (frequency fingerprints)
+// Every radio's crystal is a little off frequency, by its own steady amount: the radio (LR2021) keeps a
+// table of the radios it hears with that error ('get nodes.list'). Drawn here on one axis, so radios
+// close together and radios sharing an ID stand out, with each one's drift since this page connected.
+const radios = [];   // { rec, hist: [[ms, hz]], seen }
+let radPolling = false, radAt = 0;
+const BAND_MIN = 40;   // Hz: as the firmware's freqprint::MIN_BAND_HZ
+
+function parseRadio(s) {
+  const f = s.split(',');
+  if (f.length < 8) return null;
+  return { id: f[0], named: f[1] === '1', name: f[2], hz: Number(f[3]), dev: Number(f[4]),
+           learned: Number(f[5]), matched: Number(f[6]), age: Number(f[7]) };
+}
+const bandOf = (r) => Math.max(BAND_MIN, 3 * r.dev);
+const idShort = (r) => r.named ? r.id.slice(0, 4) : r.id;
+
+async function pollRadios(force) {
+  if (radPolling || !radio.connected || tab !== 'rad') return;
+  if (!force && Date.now() - radAt < 5000) return;
+  radPolling = true;
+  try {
+    const recs = [];
+    let start = 0, count = 0;
+    for (let page = 0; page < 10; page++) {
+      const s = await radio.cli('get nodes.list ' + start);
+      const m = /^> (\d+) (\d+)(?: (.*))?$/.exec(s);
+      if (!m) throw new Error('this radio’s firmware doesn’t have get nodes.list: update it at fluxcore.party/flash');
+      count = Number(m[1]);
+      const got = m[3] ? m[3].split(';').map(parseRadio).filter(Boolean) : [];
+      recs.push(...got);
+      start += got.length;
+      if (got.length === 0 || start >= count) break;
+    }
+    radAt = Date.now();
+    // match each row to the one seen before: same ID (or the same first byte, once it's named) and
+    // the nearest frequency, since two radios can share a 1-byte ID
+    const now = Date.now();
+    for (const r of recs) {
+      let best = null;
+      for (const e of radios) {
+        if (e.seen === now) continue;
+        const same = e.rec.id === r.id || (r.named && !e.rec.named && r.id.startsWith(e.rec.id));
+        if (!same || Math.abs(e.rec.hz - r.hz) > 200) continue;
+        if (!best || Math.abs(e.rec.hz - r.hz) < Math.abs(best.rec.hz - r.hz)) best = e;
+      }
+      if (!best) radios.push(best = { hist: [] });
+      best.rec = r;
+      best.seen = now;
+      best.hist.push([now, r.hz]);
+      if (best.hist.length > 720) best.hist.shift();   // an hour at one reading every 5 s
+    }
+    for (let i = radios.length - 1; i >= 0; i--) if (radios[i].seen !== now) radios.splice(i, 1);
+    radios.sort((a, b) => (b.rec.learned + b.rec.matched) - (a.rec.learned + a.rec.matched));
+    drawRadios();
+  } catch (e) {
+    if (radio.connected) $('radstate').textContent = e.message;
+  } finally {
+    radPolling = false;
+  }
+}
+setInterval(() => pollRadios(false), 1000);
+
+function sharedCount(r) { return radios.filter((e) => e.rec.id.slice(0, 2) === r.id.slice(0, 2)).length; }
+
+function drawRadios() {
+  const n = radios.length;
+  const shared = new Set(radios.filter((e) => sharedCount(e.rec) > 1).map((e) => e.rec.id.slice(0, 2)));
+  $('radstate').textContent = n === 0 ? 'No radios heard yet.' :
+    `${n} radio${n === 1 ? '' : 's'}` + (shared.size ? ` · ${[...shared].map((b) => sharedCount({ id: b }) + ' share ' + b).join(', ')}` : '') +
+    ' · frequency error as this radio hears it';
+  drawAxis(shared);
+  const ul = $('radios');
+  if (n === 0) {
+    ul.innerHTML = '<li class="empty">Every packet heard adds to this. Only radios with an LR2021 measure it; with other radios this stays empty.</li>';
+    return;
+  }
+  ul.innerHTML = radios.map((e) => {
+    const r = e.rec;
+    const sh = shared.has(r.id.slice(0, 2));
+    const title = r.named ? `${idShort(r)} ${r.name}` : `${r.id}`;
+    const note = r.named ? '' : ' · not confirmed yet (1-byte ID)';
+    const ago = r.age < 60 ? r.age + 's' : r.age < 3600 ? Math.round(r.age / 60) + 'm' : Math.round(r.age / 3600) + 'h';
+    const drift = e.hist.length > 1 ? e.hist[e.hist.length - 1][1] - e.hist[0][1] : 0;
+    const mins = e.hist.length > 1 ? Math.max(1, Math.round((e.hist[e.hist.length - 1][0] - e.hist[0][0]) / 60000)) : 0;
+    return `<li class="${r.named ? '' : 'anon'} ${r.age > 600 ? 'old' : ''}"><div>` +
+      `<span class="cs">${esc(title)}</span> <span class="meta">${r.hz > 0 ? '+' : ''}${r.hz} Hz ±${r.dev}</span><br>` +
+      `<span class="meta">${r.learned + r.matched} packets · ${ago} ago` +
+      (Math.abs(drift) >= 10 ? ` · moved ${drift > 0 ? '+' : ''}${drift} Hz in ${mins} min` : '') + `${esc(note)}</span>` +
+      (sh ? ` <span class="warn">· shares ${esc(r.id.slice(0, 2))}</span>` : '') +
+      `</div>${spark(e.hist)}</li>`;
+  }).join('');
+}
+
+// A radio's drift since the page connected
+function spark(hist) {
+  const W = 110, H = 28;
+  if (hist.length < 2) return `<svg width="${W}" height="${H}"></svg>`;
+  const t0 = hist[0][0], t1 = hist[hist.length - 1][0];
+  let lo = Math.min(...hist.map((h) => h[1])), hi = Math.max(...hist.map((h) => h[1]));
+  if (hi - lo < 20) { const m = (hi + lo) / 2; lo = m - 10; hi = m + 10; }
+  const pts = hist.map(([t, v]) => `${((t - t0) / Math.max(1, t1 - t0) * (W - 2) + 1).toFixed(1)},${(H - 2 - (v - lo) / (hi - lo) * (H - 4)).toFixed(1)}`);
+  return `<svg width="${W}" height="${H}"><title>${Math.round(hi - lo)} Hz range over ${Math.round((t1 - t0) / 60000)} min</title><polyline points="${pts.join(' ')}"/></svg>`;
+}
+
+// All radios on one frequency axis: each a band (where its packets land), stacked so labels don't collide
+function drawAxis(shared) {
+  const svg = $('axis');
+  const W = svg.clientWidth || 600;
+  if (radios.length === 0) { svg.setAttribute('height', 0); svg.innerHTML = ''; return; }
+  let lo = Math.min(...radios.map((e) => e.rec.hz - bandOf(e.rec)));
+  let hi = Math.max(...radios.map((e) => e.rec.hz + bandOf(e.rec)));
+  if (hi - lo < 300) { const m = (hi + lo) / 2; lo = m - 150; hi = m + 150; }
+  const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+  const x = (hz) => (hz - lo) / (hi - lo) * W;
+  // lanes: a band and its label go in the first lane where they don't overlap another
+  const lanes = [];
+  const placed = [...radios].sort((a, b) => a.rec.hz - b.rec.hz).map((e) => {
+    const r = e.rec, label = r.named ? `${idShort(r)} ${r.name}`.trim() : r.id;
+    const x0 = x(r.hz - bandOf(r)), x1 = x(r.hz + bandOf(r));
+    const right = Math.max(x1, x0 + label.length * 6.8 + 4);
+    let lane = lanes.findIndex((end) => end < x0 - 4);
+    if (lane < 0) { lane = lanes.length; lanes.push(0); }
+    lanes[lane] = right;
+    return { r, label, x0, x1, lane };
+  });
+  const LH = 30, top = 4, H = top + lanes.length * LH + 22;
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  let out = '';
+  // ticks every 50/100/200/500 Hz
+  const step = [50, 100, 200, 500, 1000, 2000].find((s) => (hi - lo) / s <= 8) || 5000;
+  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) {
+    const tx = x(t).toFixed(1);
+    out += `<line class="tick" x1="${tx}" x2="${tx}" y1="${top}" y2="${H - 16}"/><text x="${tx}" y="${H - 4}" text-anchor="middle">${t > 0 ? '+' : ''}${t}</text>`;
+  }
+  for (const p of placed) {
+    const y = top + p.lane * LH;
+    const cls = 'band' + (p.r.named ? '' : ' anon') + (shared.has(p.r.id.slice(0, 2)) ? ' shared' : '');
+    const mx = x(p.r.hz).toFixed(1);
+    out += `<rect class="${cls}" x="${p.x0.toFixed(1)}" y="${y + 13}" width="${Math.max(2, p.x1 - p.x0).toFixed(1)}" height="12"><title>${esc(p.label)}: ${p.r.hz} Hz ±${p.r.dev}</title></rect>` +
+      `<line class="mid" x1="${mx}" x2="${mx}" y1="${y + 13}" y2="${y + 25}"/>` +
+      `<text class="lbl" x="${p.x0.toFixed(1)}" y="${y + 10}">${esc(p.label)}</text>`;
+  }
+  out += `<text x="${W}" y="${H - 4}" text-anchor="end">Hz</text>`;
+  svg.innerHTML = out;
+}
+window.addEventListener('resize', () => { if (tab === 'rad') drawAxis(new Set(radios.filter((e) => sharedCount(e.rec) > 1).map((e) => e.rec.id.slice(0, 2)))); });
+
+$('radreset').onclick = async () => {
+  if (!confirm('Forget the radios heard so far? The radio starts learning them again.')) return;
+  await radio.cli('nodes.freq reset');
+  radios.length = 0;
+  pollRadios(true);
 };
 
 // ---------------------------------------------------------------- console
