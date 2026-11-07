@@ -768,6 +768,18 @@ Carol: [direct, 2 of 6 lost] &#9618;&#9618;&#9618;&#9618;the gate code is 4471, 
   <pre><code>&gt; G13 -112dBm -6.5dB 4s; G9 -87dBm 8.0dB 31s</code></pre>
   <p>Higher gain steps mean the radio amplified a weaker signal. Useful for spotting a receiver that's being overloaded by a nearby transmitter (low gain steps on weak packets). Before anything is received: <code>&gt; no packets received yet</code></p>
 
+  <h3 id="radio-freq"><code>get radio.freq</code><a class="anchor" href="#radio-freq" aria-label="Copy link to this section">#</a></h3>
+  <p>Every radio's crystal is a little off frequency, by its own steady amount, and the LR2021 measures it on each
+    packet it hears. This lists the last packets (up to 16) with that frequency error in Hz, so you can tell
+    transmitters apart, even when a packet was damaged or claims to be from someone else.</p>
+  <pre><code>&gt; 41;37 -1125 54 15 88 92733861;38 -1122 53 22 ? 314174f6</code></pre>
+  <p>Per packet: its number, the error in Hz, SNR &times; 4, its first byte, the radio it came from (<code>?</code> when
+    the packet doesn't say), its first payload bytes, and <code>!</code> if it failed its CRC.
+    <code>get radio.freq &lt;n&gt;</code> lists packets from number <code>n</code> on. On the bench a radio reads within
+    &plusmn;4&nbsp;Hz at a good signal, but heat moves it (150&nbsp;Hz after two minutes of nonstop sending), so radios less
+    than about 50&nbsp;Hz apart can't be told apart. Not security: a sender can shift their frequency on purpose.
+    Write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/frequency_fingerprint.md">docs/frequency_fingerprint.md</a>.</p>
+
   <h2 id="how-the-builds-are-made">How the builds are made<a class="anchor" href="#how-the-builds-are-made" aria-label="Copy link to this section">#</a></h2>
   <p>The builds come from <a href="https://github.com/beala/MeshCore/tree/beala/main"><code>beala/main</code></a>, the
     fork's own main line. Every 30 minutes, and whenever <code>beala/main</code> changes, a GitHub workflow in
