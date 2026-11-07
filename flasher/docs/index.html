@@ -68,6 +68,7 @@
     <a href="#weather">Weather sensors</a>
     <a href="#aircraft">Aircraft</a>
     <a href="#radar">Radar</a>
+    <a href="#damaged">Damaged packets</a>
     <a href="#clone-takeover">One key, several radios</a>
     <a href="#flood-retry">Flood retry</a>
     <a href="#chat-commands">Commands in a chat</a>
@@ -143,6 +144,11 @@
     key still show the messages they hear but never answer them, so senders get one reply and one path, and
     "delivered" means the main radio has it. A <em>Radio console</em> contact in the app runs radio commands and tells you when another radio with
     your key is heard (see <a href="#clone-takeover">below</a>).
+    <span class="branch">beala/main</span></p>
+
+  <p><strong>Read damaged packets.</strong> A message that arrives with a few bad bits is normally thrown away. With
+    <code>dmg on</code>, a companion reads what came through and shows it in a "Damaged" channel, with &#9618;&#9618;&#9618;&#9618;
+    where text was lost (see <a href="#damaged">below</a>).
     <span class="branch">beala/main</span></p>
 
   <p><strong>Resend messages that don't get out.</strong> After sending a message, the radio listens for the next
@@ -550,6 +556,39 @@ Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 
   </div>
   <p>Indoors the pulses are only a dB or two over the noise; a window or the attic helps. Full write-up:
     <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/radar.md">docs/radar.md</a>.</p>
+
+  <h2 id="damaged">Damaged packets<a class="anchor" href="#damaged" aria-label="Copy link to this section">#</a></h2>
+  <p>A packet that arrives with a few bad bits fails the radio's checksum, and MeshCore throws it away. With
+    <code>dmg on</code>, a companion keeps it and reads what came through. The messages show in the MeshCore app as
+    one more channel, "Damaged", with &#9618;&#9618;&#9618;&#9618; where text was lost. Any radio, LR2021 or not.</p>
+  <pre><code>[#Public, 1 of 5 lost] Bob: running late, be there &#9618;&#9618;&#9618;&#9618; minutes
+[#Public, fixed] Alice: anyone on the hill tonight?
+[from Carol, 2 of 6 lost] &#9618;&#9618;&#9618;&#9618;the gate code is 4471, &#9618;&#9618;&#9618;&#9618;</code></pre>
+  <p>Run <code>dmg on</code>, then disconnect and reconnect the app. The channel appears after your own, in a fixed
+    slot after Meshtastic, Weather and Aircraft.</p>
+  <ul>
+    <li><strong>Why it works.</strong> MeshCore scrambles a message in 16-character pieces, each on its own. Bad bits
+      spoil only the pieces they land in, and the rest still unscramble to the right text. The radio tries each
+      channel key it has, and for a direct message the contacts whose ID matches, and keeps the pieces that come out
+      as text.</li>
+    <li><strong>Fixed.</strong> When only one piece is bad, the radio tries flipping each of its bits until the
+      message's check code matches. Copies of a flood message heard through different repeaters are joined, so one
+      copy's good pieces fill the other's gaps.</li>
+    <li><strong>Not shown twice.</strong> If any copy arrives whole, the damaged one isn't shown. Neither is a damaged
+      echo of your own message.</li>
+    <li><strong>Shown only.</strong> A damaged message can't be checked as genuine, so it never goes in the chat it
+      was for, and is never acknowledged, passed on, or used to update a contact.</li>
+  </ul>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>dmg on</code><br><code>dmg off</code></td><td>Start or stop (saved)</td></tr>
+    <tr><td><code>dmg</code> or <code>get dmg</code></td><td>Packets heard damaged, read, shown, fixed, joined from copies, also heard whole</td></tr>
+    <tr><td><code>get dmg.log</code></td><td>The last 8 damaged packets and what became of them</td></tr>
+  </table>
+  </div>
+  <p>On the bench, near the edge of range, 6 in 10 pieces of damaged packets came through. Full write-up:
+    <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/damaged_packets.md">docs/damaged_packets.md</a>.</p>
 
   <h2 id="encryption">Encryption v2 (experimental)<a class="anchor" href="#encryption" aria-label="Copy link to this section">#</a></h2>
   <p>Opt-in, per contact and per channel. It's new and hasn't been reviewed independently yet, so don't rely on it for
