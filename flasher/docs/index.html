@@ -67,6 +67,7 @@
     <a href="#meshtastic">Meshtastic channel</a>
     <a href="#weather">Weather sensors</a>
     <a href="#aircraft">Aircraft</a>
+    <a href="#airport-weather">Airport weather</a>
     <a href="#radar">Radar</a>
     <a href="#damaged">Damaged packets</a>
     <a href="#clone-takeover">One key, several radios</a>
@@ -114,6 +115,10 @@
       <span class="branch">beala/main</span></li>
     <li><strong>Aircraft.</strong> With <code>air on</code>, aircraft reporting on 978&nbsp;MHz (UAT) and 1090&nbsp;MHz
       (ADS-B) show in an "Aircraft" channel: a digest of the ones nearby every 10 minutes (see <a href="#aircraft">below</a>).
+      <span class="branch">beala/main</span></li>
+    <li><strong>Airport weather.</strong> With <code>metar on</code>, METARs and TAFs that FAA ground stations broadcast
+      on 978&nbsp;MHz (FIS-B) show in an "Airport weather" channel, for the airports you choose (see
+      <a href="#airport-weather">below</a>).
       <span class="branch">beala/main</span></li>
     <li><strong>Radar sweep detector.</strong> <code>radar</code> listens on 1030&nbsp;MHz for the pulses ground radars
       send to aircraft and works out how fast the radars nearby are turning. Nothing is sent (see <a href="#radar">below</a>).
@@ -417,7 +422,7 @@
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>mt on</code><br><code>mt off</code></td><td>Start or stop listening (saved). <code>mt on</code> turns weather and aircraft off: one at a time</td></tr>
+    <tr><td><code>mt on</code><br><code>mt off</code></td><td>Start or stop listening (saved). <code>mt on</code> turns weather, aircraft and airport weather off: one at a time</td></tr>
     <tr><td><code>mt</code> or <code>get mt</code></td><td>The settings</td></tr>
     <tr><td><code>set mt.preset &lt;name&gt;</code></td><td><code>LongFast</code> (default), <code>LongModerate</code>, <code>LongSlow</code>, <code>MediumFast</code>, <code>MediumSlow</code>, <code>ShortFast</code>, <code>ShortSlow</code>, <code>ShortTurbo</code></td></tr>
     <tr><td><code>set mt.freq &lt;MHz&gt;</code><br><code>set mt.freq auto</code></td><td>The frequency. <code>auto</code> is the preset's default US slot (LongFast: 906.875)</td></tr>
@@ -479,7 +484,7 @@
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>wx on</code><br><code>wx off</code></td><td>Start or stop (saved). <code>wx on</code> turns Meshtastic and aircraft off: one at a time</td></tr>
+    <tr><td><code>wx on</code><br><code>wx off</code></td><td>Start or stop (saved). <code>wx on</code> turns Meshtastic, aircraft and airport weather off: one at a time</td></tr>
     <tr><td><code>wx</code> or <code>get wx</code></td><td>The settings</td></tr>
     <tr><td><code>wx scan</code></td><td>Listen for sensors without a break (85&nbsp;s per brand), then list them in the console</td></tr>
     <tr><td><code>wx scan on</code><br><code>wx scan off</code></td><td>Listen all the time, with a console note for each new sensor (not saved)</td></tr>
@@ -525,7 +530,7 @@
   <div class="table-wrap">
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
-    <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved). <code>air on</code> turns Meshtastic and weather off: one at a time</td></tr>
+    <tr><td><code>air on</code><br><code>air off</code></td><td>Start or stop (saved). <code>air on</code> turns Meshtastic, weather and airport weather off: one at a time</td></tr>
     <tr><td><code>air scan on</code><br><code>air scan off</code></td><td>Listen all the time; the mesh isn't heard meanwhile (not saved)</td></tr>
     <tr><td><code>get air.planes</code></td><td>Every aircraft heard in the last 5 minutes, at any distance or height</td></tr>
     <tr><td><code>get air.list [start]</code></td><td>The same as numbers for apps, a page at a time (the <a href="/app/">app</a>'s map uses it)</td></tr>
@@ -538,6 +543,34 @@
   </table>
   </div>
   <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/aircraft.md">docs/aircraft.md</a>.</p>
+
+  <h2 id="airport-weather">Airport weather<a class="anchor" href="#airport-weather" aria-label="Copy link to this section">#</a></h2>
+  <p>FAA ground stations broadcast free weather on 978&nbsp;MHz (FIS-B): METARs (current conditions at airports),
+    TAFs (forecasts) and more, for dozens of airports at once. A radio with an LR2021 (X1, AB Labs XIAO and WisBlock
+    NiceRF, Meshnology W12) listens in short breaks from the mesh, and the reports for the airports you choose show in
+    an "Airport weather" channel, each one once:
+    <code>KLMO: 052153Z 31012KT 10SM FEW080 12/M01 A3002 RMK AO2</code>. Nothing is ever sent on 978&nbsp;MHz.</p>
+  <ol>
+    <li>In the <a href="#radio-console">Radio console</a>, run <code>metar on</code> (listens 10% of the time).</li>
+    <li>Choose airports by their ICAO ID: <code>set metar.airports KLMO,KBJC</code>. Until you do, the channel gets one
+      hint with an airport it heard, and <code>get metar.heard</code> lists them all.</li>
+    <li>Disconnect and reconnect the app. A channel named <strong>Airport weather</strong> appears.</li>
+  </ol>
+  <p>Ground stations are placed for aircraft in the air, so near the ground coverage has gaps: an attic, a window
+    facing open sky or a hill helps. <code>get metar.stats</code> shows whether frames are arriving (stations send
+    every second).</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>metar on</code><br><code>metar off</code></td><td>Start or stop (saved). Turns Meshtastic, weather and aircraft off: one at a time</td></tr>
+    <tr><td><code>set metar.airports &lt;IDs&gt;</code></td><td>Airports to show, comma-separated (<code>none</code> to clear)</td></tr>
+    <tr><td><code>set metar.taf on|off</code></td><td>Forecasts (TAF) too (default off)</td></tr>
+    <tr><td><code>set metar.duty &lt;percent&gt;</code></td><td>Share of the time spent listening (default 10; 100 = all the time, and the mesh isn't heard)</td></tr>
+    <tr><td><code>get metar.heard</code></td><td>Airports with a METAR heard</td></tr>
+    <tr><td><code>get metar.stats</code></td><td>Frames, corrections, reports, posts, and the last station heard</td></tr>
+  </table>
+  </div>
+  <p>Full write-up: <a href="https://github.com/beala/MeshCore/blob/beala/main/docs/airport_weather.md">docs/airport_weather.md</a>.</p>
 
   <h2 id="radar">Radar sweep detector<a class="anchor" href="#radar" aria-label="Copy link to this section">#</a></h2>
   <p>Ground radars interrogate aircraft transponders on 1030&nbsp;MHz with a rotating beam. A radio with an LR2021
