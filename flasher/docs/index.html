@@ -575,7 +575,7 @@ Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 
       message's check code matches. Copies of a flood message heard through different repeaters are joined, so one
       copy's good pieces fill the other's gaps.</li>
     <li><strong>Not shown twice.</strong> If any copy arrives whole, the damaged one isn't shown. Neither is a damaged
-      echo of your own message.</li>
+      echo of your own message. <code>set dmg.all on</code> shows them anyway, labelled "also heard whole".</li>
     <li><strong>Shown only.</strong> A damaged message can't be checked as genuine, so it never goes in the chat it
       was for, and is never acknowledged, passed on, or used to update a contact.</li>
   </ul>
@@ -583,6 +583,7 @@ Radar, 1030 MHz, 30 s: 3751 pulses, 8 bursts. one turning every 4.81 s (heard 5 
   <table>
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>dmg on</code><br><code>dmg off</code></td><td>Start or stop (saved)</td></tr>
+    <tr><td><code>set dmg.all on</code><br><code>set dmg.all off</code></td><td>Also show damaged messages that arrived whole too (saved; default off)</td></tr>
     <tr><td><code>dmg</code> or <code>get dmg</code></td><td>Packets heard damaged, read, shown, fixed, joined from copies, also heard whole</td></tr>
     <tr><td><code>get dmg.log</code></td><td>The last 8 damaged packets and what became of them</td></tr>
   </table>
