@@ -419,7 +419,7 @@ function parseRadio(s) {
            learned: Number(f[5]), matched: Number(f[6]), age: Number(f[7]) };
 }
 const bandOf = (r) => Math.max(BAND_MIN, 3 * r.dev);
-const idShort = (r) => r.named ? r.id.slice(0, 4) : r.id;
+const idShort = (r) => r.named ? r.id.slice(0, 6) : r.id;   // up to 3 bytes, as the radio shows
 
 async function pollRadios(force) {
   if (radPolling || !radio.connected || tab !== 'rad') return;

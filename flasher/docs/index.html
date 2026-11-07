@@ -773,7 +773,7 @@ Carol: [direct, 2 of 6 lost] &#9618;&#9618;&#9618;&#9618;the gate code is 4471, 
     packet. The radio keeps a table of the radios around it, one row each, with that frequency as a fingerprint:</p>
   <pre><code>&gt; 3 radios; 2 share 4c; a2b3: +27Hz ~9, 19, 6s; 4c: +23Hz ~9, 12, 5s; 4c07 Sender: -390Hz ~2, 6, 7s</code></pre>
   <p>Per radio: its ID, its usual frequency error, how far its readings stray, packets heard and when last heard.
-    A radio gets 2 bytes of ID and a name only once a signed advert or a 2-byte ID confirms it; until then it shows
+    A radio gets 2 or 3 bytes of ID and a name only once a signed advert or an ID of 2 bytes or more confirms it; until then it shows
     its 1-byte ID. <code>2 share 4c</code> means two radios whose IDs start with the same byte, told apart by frequency.
     Damaged packets that don't say who sent them are placed by frequency too, shown with a <code>~</code>
     (<code>~a2b3: [channel message, -10dB] ...</code>). Radios less than about 40&nbsp;Hz apart can't be told apart, and it isn't
